@@ -1,0 +1,532 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard - HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .meal-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .meal-date-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 2px solid var(--glass-border);
+    }
+
+    .date-badge {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-radius: var(--radius-full);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .meal-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-md);
+    }
+
+    .meal-option {
+        background: rgba(255, 255, 255, 0.03);
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        transition: all var(--transition-base);
+        cursor: pointer;
+    }
+
+    .meal-option:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary-light);
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+    }
+
+    .meal-option.active {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+        border-color: var(--primary);
+    }
+
+    .meal-option.inactive {
+        opacity: 0.5;
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--danger);
+    }
+
+    .meal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .meal-icon {
+        font-size: 2rem;
+    }
+
+    .meal-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .meal-time {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .early-breakfast-toggle {
+        margin-top: var(--spacing-sm);
+        padding: var(--spacing-sm);
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid var(--warning);
+        border-radius: var(--radius-md);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .away-mode-section {
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1));
+        border: 2px solid var(--accent);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .away-mode-active {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+        border-color: var(--danger);
+    }
+
+    .announcement-card {
+        background: rgba(99, 102, 241, 0.05);
+        border-left: 4px solid var(--primary);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .announcement-title {
+        font-weight: 600;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .announcement-message {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .priority-high {
+        border-left-color: var(--danger);
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .priority-medium {
+        border-left-color: var(--warning);
+        background: rgba(245, 158, 11, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Welcome, {{ student.user.first_name }}! 👋</h1>
+    <p class="page-subtitle">Room {{ student.room_number }} • Manage your meal preferences</p>
+</div>
+
+<!-- Away Mode Section -->
+<div class="away-mode-section {% if student.is_away %}away-mode-active{% endif %}">
+    <div class="flex-between mb-3">
+        <div>
+            <h3>{% if student.is_away %}🏠 You're Away{% else %}✈️ Going Home?{% endif %}</h3>
+            <p class="text-muted">
+                {% if student.is_away %}
+                Away from {{ student.away_from_date }} to {{ student.away_to_date }}
+                {% else %}
+                Mark yourself as away to auto-disable meals
+                {% endif %}
+            </p>
+        </div>
+        {% if not student.is_away %}
+        <button class="btn btn-warning" onclick="showAwayModal()">Mark Away</button>
+        {% else %}
+        <button class="btn btn-success" onclick="markReturn()">I'm Back!</button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Announcements -->
+{% if announcements %}
+<div class="glass-card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">📢 Announcements</h3>
+    </div>
+    <div class="card-body">
+        {% for announcement in announcements %}
+        <div class="announcement-card priority-{{ announcement.priority }}">
+            <div class="announcement-title">{{ announcement.title }}</div>
+            <div class="announcement-message">{{ announcement.message }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Today's Activities -->
+{% if today_activities %}
+<div class="glass-card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">📅 Today's Activities</h3>
+    </div>
+    <div class="card-body">
+        {% for activity in today_activities %}
+        <div class="flex-between mb-2">
+            <span>{{ activity.activity_name }}</span>
+            <span class="text-muted">{{ activity.start_time|time:"g:i A" }} - {{ activity.end_time|time:"g:i A"
+                }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Today's Meals -->
+<div class="meal-card">
+    <div class="meal-date-header">
+        <h2>Today's Meals</h2>
+        <span class="date-badge">{{ today|date:"D, M d" }}</span>
+    </div>
+
+    <div class="meal-options">
+        <div class="meal-option {% if today_meals.breakfast %}active{% else %}inactive{% endif %}" data-meal="breakfast"
+            data-date="{{ today }}" data-status="{{ today_meals.breakfast|yesno:'true,false' }}">
+            <div class="meal-header">
+                <div>
+                    <div class="meal-icon">🌅</div>
+                    <div class="meal-name">Breakfast</div>
+                    <div class="meal-time">8:00 AM - 9:00 AM</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if today_meals.breakfast %}checked{% endif %}
+                        onchange="toggleMeal('breakfast', '{{ today }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            {% if today_meals.breakfast %}
+            <div class="early-breakfast-toggle">
+                <span>⏰ Need early breakfast? (7am class)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if today_meals.early_breakfast_needed %}checked{% endif %}
+                        onchange="toggleEarlyBreakfast('{{ today }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="meal-option {% if today_meals.lunch %}active{% else %}inactive{% endif %}" data-meal="lunch"
+            data-date="{{ today }}" data-status="{{ today_meals.lunch|yesno:'true,false' }}">
+            <div class="meal-header">
+                <div>
+                    <div class="meal-icon">☀️</div>
+                    <div class="meal-name">Lunch</div>
+                    <div class="meal-time">12:00 PM - 2:00 PM</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if today_meals.lunch %}checked{% endif %}
+                        onchange="toggleMeal('lunch', '{{ today }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="meal-option {% if today_meals.supper %}active{% else %}inactive{% endif %}" data-meal="supper"
+            data-date="{{ today }}" data-status="{{ today_meals.supper|yesno:'true,false' }}">
+            <div class="meal-header">
+                <div>
+                    <div class="meal-icon">🌙</div>
+                    <div class="meal-name">Supper</div>
+                    <div class="meal-time">6:00 PM - 8:00 PM</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if today_meals.supper %}checked{% endif %}
+                        onchange="toggleMeal('supper', '{{ today }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tomorrow's Meals -->
+<div class="meal-card">
+    <div class="meal-date-header">
+        <h2>Tomorrow's Meals</h2>
+        <span class="date-badge">{{ tomorrow|date:"D, M d" }}</span>
+    </div>
+
+    <div class="meal-options">
+        <div class="meal-option {% if tomorrow_meals.breakfast %}active{% else %}inactive{% endif %}"
+            data-meal="breakfast" data-date="{{ tomorrow }}"
+            data-status="{{ tomorrow_meals.breakfast|yesno:'true,false' }}">
+            <div class="meal-header">
+                <div>
+                    <div class="meal-icon">🌅</div>
+                    <div class="meal-name">Breakfast</div>
+                    <div class="meal-time">8:00 AM - 9:00 AM</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if tomorrow_meals.breakfast %}checked{% endif %}
+                        onchange="toggleMeal('breakfast', '{{ tomorrow }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            {% if tomorrow_meals.breakfast %}
+            <div class="early-breakfast-toggle">
+                <span>⏰ Need early breakfast? (7am class)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if tomorrow_meals.early_breakfast_needed %}checked{% endif %}
+                        onchange="toggleEarlyBreakfast('{{ tomorrow }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="meal-option {% if tomorrow_meals.lunch %}active{% else %}inactive{% endif %}" data-meal="lunch"
+            data-date="{{ tomorrow }}" data-status="{{ tomorrow_meals.lunch|yesno:'true,false' }}">
+            <div class="meal-header">
+                <div>
+                    <div class="meal-icon">☀️</div>
+                    <div class="meal-name">Lunch</div>
+                    <div class="meal-time">12:00 PM - 2:00 PM</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if tomorrow_meals.lunch %}checked{% endif %}
+                        onchange="toggleMeal('lunch', '{{ tomorrow }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="meal-option {% if tomorrow_meals.supper %}active{% else %}inactive{% endif %}" data-meal="supper"
+            data-date="{{ tomorrow }}" data-status="{{ tomorrow_meals.supper|yesno:'true,false' }}">
+            <div class="meal-header">
+                <div>
+                    <div class="meal-icon">🌙</div>
+                    <div class="meal-name">Supper</div>
+                    <div class="meal-time">6:00 PM - 8:00 PM</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" {% if tomorrow_meals.supper %}checked{% endif %}
+                        onchange="toggleMeal('supper', '{{ tomorrow }}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Away Modal (Hidden) -->
+<div id="awayModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="glass-card" style="max-width: 500px; width: 90%;">
+        <h3 class="mb-3">Mark Yourself as Away</h3>
+        <div class="form-group">
+            <label class="form-label">From Date</label>
+            <input type="date" id="awayFromDate" class="form-input" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">To Date</label>
+            <input type="date" id="awayToDate" class="form-input" required>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-warning" onclick="submitAwayMode()">Confirm</button>
+            <button class="btn btn-secondary" onclick="closeAwayModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function toggleMeal(mealType, date, isChecked) {
+        const csrftoken = getCookie('csrftoken');
+
+        // Get current state of all meals for this date
+        const mealCards = document.querySelectorAll(`[data-date="${date}"]`);
+        let mealData = {
+            date: date,
+            breakfast: 'false',
+            lunch: 'false',
+            supper: 'false',
+            early_breakfast: 'false'
+        };
+
+        mealCards.forEach(card => {
+            const meal = card.getAttribute('data-meal');
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            if (meal === mealType) {
+                mealData[meal] = isChecked ? 'true' : 'false';
+            } else if (checkbox) {
+                mealData[meal] = checkbox.checked ? 'true' : 'false';
+            }
+        });
+
+        fetch('{% url "hms:confirm_meals" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(mealData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI
+                    const mealOption = document.querySelector(`[data-meal="${mealType}"][data-date="${date}"]`);
+                    if (isChecked) {
+                        mealOption.classList.add('active');
+                        mealOption.classList.remove('inactive');
+                    } else {
+                        mealOption.classList.remove('active');
+                        mealOption.classList.add('inactive');
+                    }
+                    showToast('Meal preference updated!', 'success');
+                }
+            });
+    }
+
+    function toggleEarlyBreakfast(date, isChecked) {
+        const csrftoken = getCookie('csrftoken');
+
+        fetch('{% url "hms:toggle_early_breakfast" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                date: date,
+                early_breakfast: isChecked ? 'true' : 'false'
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(isChecked ? 'Early breakfast enabled!' : 'Early breakfast disabled', 'success');
+                }
+            });
+    }
+
+    function showAwayModal() {
+        document.getElementById('awayModal').style.display = 'flex';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('awayFromDate').value = today;
+        document.getElementById('awayFromDate').min = today;
+        document.getElementById('awayToDate').min = today;
+    }
+
+    function closeAwayModal() {
+        document.getElementById('awayModal').style.display = 'none';
+    }
+
+    function submitAwayMode() {
+        const fromDate = document.getElementById('awayFromDate').value;
+        const toDate = document.getElementById('awayToDate').value;
+        const csrftoken = getCookie('csrftoken');
+
+        if (!fromDate || !toDate) {
+            showToast('Please select both dates', 'error');
+            return;
+        }
+
+        fetch('{% url "hms:toggle_away" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'away',
+                from_date: fromDate,
+                to_date: toDate
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            });
+    }
+
+    function markReturn() {
+        const csrftoken = getCookie('csrftoken');
+
+        fetch('{% url "hms:toggle_away" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'return'
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            });
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type}`;
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.top = '20px';
+        toast.style.right = '20px';
+        toast.style.zIndex = '10000';
+        toast.style.minWidth = '300px';
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}Student Profile - HMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">View your information and meal history</p>
+</div>
+
+<div class="grid grid-2">
+    <div class="glass-card">
+        <div class="card-header">
+            <h3 class="card-title">Personal Information</h3>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="text-muted">Full Name</label>
+                <p style="font-size: 1.1rem; font-weight: 600;">{{ student.user.get_full_name }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="text-muted">Username</label>
+                <p>{{ student.user.username }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="text-muted">Room Number</label>
+                <p>{{ student.room_number }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="text-muted">Phone Number</label>
+                <p>{{ student.phone_number|default:"Not provided" }}</p>
+            </div>
+            <div class="mb-3">
+                <label class="text-muted">Status</label>
+                <p>
+                    {% if student.is_away %}
+                    <span style="color: var(--danger);">🏠 Away</span>
+                    {% else %}
+                    <span style="color: var(--success);">✅ Present</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Meal History</h3>
+        </div>
+        <div class="card-body">
+            {% for meal in meal_history|slice:":10" %}
+            <div
+                style="padding: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-sm);">
+                <div class="flex-between">
+                    <span style="font-weight: 600;">{{ meal.date|date:"M d, Y" }}</span>
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if meal.breakfast %}<span title="Breakfast">🌅</span>{% endif %}
+                        {% if meal.lunch %}<span title="Lunch">☀️</span>{% endif %}
+                        {% if meal.supper %}<span title="Supper">🌙</span>{% endif %}
+                        {% if meal.early_breakfast_needed %}<span title="Early Breakfast">⏰</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center">No meal history yet</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'hms:student_dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+{% endblock %}

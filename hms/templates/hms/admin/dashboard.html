@@ -1,0 +1,64 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}Admin Dashboard - HMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Admin Dashboard 🛠️</h1>
+    <p class="page-subtitle">Manage system settings and view statistics</p>
+</div>
+
+<div class="grid grid-4 mb-4">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Total Students</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ students_away }}</div>
+        <div class="stat-label">Students Away</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ active_announcements }}</div>
+        <div class="stat-label">Active Announcements</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ activities_count }}</div>
+        <div class="stat-label">Weekly Activities</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="glass-card">
+        <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                <a href="{% url 'hms:manage_students' %}" class="btn btn-primary">👥 Manage Students</a>
+                <a href="{% url 'hms:manage_activities' %}" class="btn btn-primary">📅 Manage Activities</a>
+                <a href="{% url 'hms:manage_announcements' %}" class="btn btn-primary">📢 Manage Announcements</a>
+                <a href="/admin/" class="btn btn-secondary">⚙️ Django Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Announcements</h3>
+        </div>
+        <div class="card-body">
+            {% for announcement in recent_announcements %}
+            <div
+                style="padding: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-sm);">
+                <div style="font-weight: 600;">{{ announcement.title }}</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem;">{{ announcement.created_at|date:"M d, g:i A"
+                    }}</div>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center">No announcements yet</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

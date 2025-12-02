@@ -1,0 +1,248 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}Kitchen Dashboard - HMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .meal-count-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        text-align: center;
+        transition: all var(--transition-base);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .meal-count-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .meal-count-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(99, 102, 241, 0.3);
+    }
+
+    .meal-icon-large {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .count-number {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: var(--spacing-sm) 0;
+    }
+
+    .count-label {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .count-sublabel {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: var(--spacing-xs);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+    }
+
+    .auto-refresh-indicator {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        color: var(--success);
+        font-size: 0.9rem;
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--success);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Kitchen Dashboard 👨‍🍳</h1>
+    <p class="page-subtitle">Real-time meal count tracking</p>
+</div>
+
+<div class="flex-between mb-3">
+    <h2>Overview</h2>
+    <div class="auto-refresh-indicator">
+        <span class="pulse-dot"></span>
+        <span>Auto-refreshing every 30s</span>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Total Students</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-value">{{ students_away }}</div>
+        <div class="stat-label">Students Away</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-value">{{ total_students|add:"-"|add:students_away }}</div>
+        <div class="stat-label">Students Present</div>
+    </div>
+</div>
+
+<!-- Today's Meals -->
+<div class="section-header">
+    <h2>Today's Meals - {{ today|date:"l, F d" }}</h2>
+    <a href="{% url 'hms:daily_report' %}?date={{ today }}" class="btn btn-primary">View Report</a>
+</div>
+
+<div class="dashboard-grid" id="todayMeals">
+    <div class="meal-count-card">
+        <div class="meal-icon-large">🌅</div>
+        <div class="count-number" id="today-breakfast">{{ today_breakfast }}</div>
+        <div class="count-label">Breakfast</div>
+        <div class="count-sublabel">8:00 AM - 9:00 AM</div>
+        {% if today_early_breakfast > 0 %}
+        <div class="mt-2"
+            style="padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius-md);">
+            <span style="color: var(--warning);">⏰ {{ today_early_breakfast }} need early breakfast</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="meal-count-card">
+        <div class="meal-icon-large">☀️</div>
+        <div class="count-number" id="today-lunch">{{ today_lunch }}</div>
+        <div class="count-label">Lunch</div>
+        <div class="count-sublabel">12:00 PM - 2:00 PM</div>
+    </div>
+
+    <div class="meal-count-card">
+        <div class="meal-icon-large">🌙</div>
+        <div class="count-number" id="today-supper">{{ today_supper }}</div>
+        <div class="count-label">Supper</div>
+        <div class="count-sublabel">6:00 PM - 8:00 PM</div>
+    </div>
+</div>
+
+<!-- Tomorrow's Meals -->
+<div class="section-header">
+    <h2>Tomorrow's Meals - {{ tomorrow|date:"l, F d" }}</h2>
+    <a href="{% url 'hms:daily_report' %}?date={{ tomorrow }}" class="btn btn-secondary">View Report</a>
+</div>
+
+<div class="dashboard-grid" id="tomorrowMeals">
+    <div class="meal-count-card">
+        <div class="meal-icon-large">🌅</div>
+        <div class="count-number" id="tomorrow-breakfast">{{ tomorrow_breakfast }}</div>
+        <div class="count-label">Breakfast</div>
+        <div class="count-sublabel">8:00 AM - 9:00 AM</div>
+        {% if tomorrow_early_breakfast > 0 %}
+        <div class="mt-2"
+            style="padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius-md);">
+            <span style="color: var(--warning);">⏰ {{ tomorrow_early_breakfast }} need early breakfast</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="meal-count-card">
+        <div class="meal-icon-large">☀️</div>
+        <div class="count-number" id="tomorrow-lunch">{{ tomorrow_lunch }}</div>
+        <div class="count-label">Lunch</div>
+        <div class="count-sublabel">12:00 PM - 2:00 PM</div>
+    </div>
+
+    <div class="meal-count-card">
+        <div class="meal-icon-large">🌙</div>
+        <div class="count-number" id="tomorrow-supper">{{ tomorrow_supper }}</div>
+        <div class="count-label">Supper</div>
+        <div class="count-sublabel">6:00 PM - 8:00 PM</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="glass-card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Quick Actions</h3>
+    </div>
+    <div class="card-body">
+        <div class="flex gap-2">
+            <a href="{% url 'hms:early_breakfast_list' %}" class="btn btn-warning">
+                ⏰ Early Breakfast List
+            </a>
+            <a href="{% url 'hms:daily_report' %}" class="btn btn-primary">
+                📊 Daily Report
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh meal counts every 30 seconds
+    setInterval(function () {
+        refreshMealCounts('{{ today }}', 'today');
+        refreshMealCounts('{{ tomorrow }}', 'tomorrow');
+    }, 30000);
+
+    function refreshMealCounts(date, prefix) {
+        fetch(`{% url 'hms:meal_count_api' %}?date=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(`${prefix}-breakfast`).textContent = data.breakfast;
+                document.getElementById(`${prefix}-lunch`).textContent = data.lunch;
+                document.getElementById(`${prefix}-supper`).textContent = data.supper;
+            })
+            .catch(error => console.error('Error refreshing counts:', error));
+    }
+</script>
+{% endblock %}
