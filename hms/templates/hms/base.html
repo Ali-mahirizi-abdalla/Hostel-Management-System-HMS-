@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,11 @@
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     {% if user.is_authenticated %}
     <nav class="navbar">
@@ -18,16 +21,29 @@
             <a href="{% url 'hms:home' %}" class="navbar-brand">🍽️ HMS</a>
             <ul class="navbar-menu">
                 {% if user.student_profile %}
-                <li><a href="{% url 'hms:student_dashboard' %}" class="navbar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">Dashboard</a></li>
-                <li><a href="{% url 'hms:student_profile' %}" class="navbar-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">Profile</a></li>
+                <li><a href="{% url 'hms:student_dashboard' %}"
+                        class="navbar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">Dashboard</a>
+                </li>
+                <li><a href="{% url 'hms:student_profile' %}"
+                        class="navbar-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">Profile</a>
+                </li>
                 {% elif user.is_staff %}
-                <li><a href="{% url 'hms:kitchen_dashboard' %}" class="navbar-link {% if request.resolver_match.url_name == 'kitchen_dashboard' %}active{% endif %}">Kitchen</a></li>
-                <li><a href="{% url 'hms:early_breakfast_list' %}" class="navbar-link {% if request.resolver_match.url_name == 'early_breakfast_list' %}active{% endif %}">Early Breakfast</a></li>
-                <li><a href="{% url 'hms:daily_report' %}" class="navbar-link {% if request.resolver_match.url_name == 'daily_report' %}active{% endif %}">Reports</a></li>
-                <li><a href="{% url 'hms:admin_dashboard' %}" class="navbar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">Admin</a></li>
+                <li><a href="{% url 'hms:kitchen_dashboard' %}"
+                        class="navbar-link {% if request.resolver_match.url_name == 'kitchen_dashboard' %}active{% endif %}">Kitchen</a>
+                </li>
+                <li><a href="{% url 'hms:early_breakfast_list' %}"
+                        class="navbar-link {% if request.resolver_match.url_name == 'early_breakfast_list' %}active{% endif %}">Early
+                        Breakfast</a></li>
+                <li><a href="{% url 'hms:daily_report' %}"
+                        class="navbar-link {% if request.resolver_match.url_name == 'daily_report' %}active{% endif %}">Reports</a>
+                </li>
+                <li><a href="{% url 'hms:admin_dashboard' %}"
+                        class="navbar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">Admin</a>
+                </li>
                 {% endif %}
                 <li><span class="navbar-link">👤 {{ user.get_full_name|default:user.username }}</span></li>
-                <li><a href="{% url 'hms:logout' %}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Logout</a></li>
+                <li><a href="{% url 'hms:logout' %}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Logout</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -50,4 +66,5 @@
     <script src="{% static 'js/main.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

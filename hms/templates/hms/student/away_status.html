@@ -1,0 +1,169 @@
+<!-- templates/hms/student/away_status.html -->
+{% extends 'hms/base.html' %}
+
+{% block title %}Away Status - Hostel Meal System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Away Status</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Update Your Away Status</h5>
+            </div>
+            <div class="card-body">
+                {% if student.is_away %}
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">You are currently marked as away</h5>
+                        <p class="mb-2">From: <strong>{{ student.away_from_date|date:"F d, Y" }}</strong></p>
+                        <p class="mb-0">To: <strong>{{ student.away_to_date|date:"F d, Y" }}</strong></p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Meal Status</h5>
+                        <p class="mb-0">All your meals have been automatically set to <span class="badge bg-secondary">Not Taking</span> during this period.</p>
+                    </div>
+                    
+                    <form method="post" action="{% url 'hms:update_away_status' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="is_away" value="false">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>I'm Back - Mark Me as Present
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-success mb-4">
+                        <h5 class="alert-heading">You are currently marked as present</h5>
+                        <p class="mb-0">You can update your status if you're planning to be away from the hostel.</p>
+                    </div>
+                    
+                    <form method="post" action="{% url 'hms:update_away_status' %}" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="is_away" value="true">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="away_from_date" class="form-label">Away From</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="away_from_date" 
+                                       name="away_from_date" 
+                                       min="{% now 'Y-m-d' %}"
+                                       required>
+                                <div class="invalid-feedback">
+                                    Please select a start date.
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="away_to_date" class="form-label">Away To</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="away_to_date" 
+                                       name="away_to_date" 
+                                       min="{% now 'Y-m-d' %}"
+                                       required>
+                                <div class="invalid-feedback">
+                                    Please select an end date.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for Leave (Optional)</label>
+                            <textarea class="form-control" id="reason" name="reason" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h5 class="alert-heading">Important Note</h5>
+                            <p class="mb-0">Marking yourself as away will automatically set all your meals to "Not Taking" for the selected period. This helps reduce food wastage and ensures accurate meal planning.</p>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-calendar-x me-2"></i>Mark Me as Away
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Away History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in away_history %}
+                                <tr>
+                                    <td>{{ record.start_date|date:"M d, Y" }}</td>
+                                    <td>{{ record.end_date|date:"M d, Y" }}</td>
+                                    <td>{{ record.duration }} days</td>
+                                    <td>
+                                        {% if record.is_current %}
+                                            <span class="badge bg-warning text-dark">Past</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Completed</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No away records found</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                
+                // Custom validation for date range
+                const fromDate = new Date(document.getElementById('away_from_date').value)
+                const toDate = new Date(document.getElementById('away_to_date').value)
+                
+                if (fromDate > toDate) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    alert('End date must be after start date')
+                    return false
+                }
+                
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+</script>
+{% endblock %}

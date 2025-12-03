@@ -1,162 +1,79 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+<!-- templates/hms/login.html -->
+{% extends 'hms/base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Hostel Meal Management System</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--spacing-md);
-        }
+{% block title %}Login - Hostel Meal System{% endblock %}
 
-        .login-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-xl);
-            max-width: 450px;
-            width: 100%;
-            box-shadow: var(--glass-shadow);
-            animation: fadeInUp 0.6s ease;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .login-icon {
-            font-size: 4rem;
-            margin-bottom: var(--spacing-sm);
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .login-title {
-            font-size: 2rem;
-            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .login-subtitle {
-            color: var(--text-secondary);
-        }
-
-        .login-form {
-            margin-top: var(--spacing-lg);
-        }
-
-        .form-group {
-            margin-bottom: var(--spacing-md);
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: var(--spacing-xs);
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all var(--transition-base);
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 1rem;
-            margin-top: var(--spacing-md);
-            font-size: 1.1rem;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="login-icon">🍽️</div>
-                <h1 class="login-title">Welcome Back</h1>
-                <p class="login-subtitle">Hostel Meal Management System</p>
-            </div>
-
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-            {% endif %}
-
-            <form method="post" class="login-form">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" name="username" class="form-input"
-                        placeholder="Enter your username" required autofocus>
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="text-center mb-4">
+            <h1 class="h3 mb-3 font-weight-normal">Hostel Meal System</h1>
+            <p class="text-muted">Sign in to manage your meals</p>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'hms:login' %}">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" 
+                               class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                               id="username" 
+                               name="username" 
+                               required
+                               autofocus>
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.username.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label for="password" class="form-label">Password</label>
+                            <a href="{% url 'hms:password_reset' %}" class="small text-muted">Forgot password?</a>
+                        </div>
+                        <input type="password" 
+                               class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                               id="password" 
+                               name="password" 
+                               required>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.password.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p class="mb-0">Don't have an account? 
+                        <a href="{% url 'hms:register' %}" class="text-primary">Sign up</a>
+                    </p>
                 </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="password" class="form-input"
-                        placeholder="Enter your password" required>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-login">
-                    Sign In
-                </button>
-            </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted small">
+                &copy; {% now "Y" %} Hostel Meal System. All rights reserved.
+            </p>
         </div>
     </div>
-</body>
-
-</html>
+</div>
+{% endblock %}

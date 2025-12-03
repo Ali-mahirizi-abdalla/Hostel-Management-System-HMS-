@@ -47,6 +47,7 @@
             <h3 class="card-title">Recent Announcements</h3>
         </div>
         <div class="card-body">
+            {% if recent_announcements %}
             {% for announcement in recent_announcements %}
             <div
                 style="padding: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-sm);">
@@ -54,9 +55,10 @@
                 <div style="color: var(--text-muted); font-size: 0.85rem;">{{ announcement.created_at|date:"M d, g:i A"
                     }}</div>
             </div>
-            {% empty %}
-            <p class="text-muted text-center">No announcements yet</p>
             {% endfor %}
+            {% else %}
+            <p class="text-muted text-center">No announcements yet</p>
+            {% endif %}
         </div>
     </div>
 </div>
