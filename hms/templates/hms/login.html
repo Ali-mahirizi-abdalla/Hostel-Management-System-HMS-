@@ -1,78 +1,169 @@
-<!-- templates/hms/login.html -->
 {% extends 'hms/base.html' %}
+{% load static %}
 
 {% block title %}Login - Hostel Meal System{% endblock %}
 
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        width: 100%;
+        max-width: 450px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .login-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .login-header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        padding: 2rem;
+        text-align: center;
+        color: white;
+    }
+
+    .login-logo {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .login-body {
+        padding: 2.5rem;
+    }
+
+    .form-floating {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        padding: 1rem;
+        height: auto;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    .forgot-password {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+
+    .forgot-password a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+    .forgot-password a:hover {
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="text-center mb-4">
-            <h1 class="h3 mb-3 font-weight-normal">Hostel Meal System</h1>
-            <p class="text-muted">Sign in to manage your meals</p>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">🍽️</div>
+            <h2 class="fw-bold mb-0">Welcome Back</h2>
+            <p class="mb-0 opacity-75">Sign in to manage your meals</p>
         </div>
-        
-        <div class="card shadow">
-            <div class="card-body p-4">
-                <form method="post" action="{% url 'hms:login' %}">
-                    {% csrf_token %}
-                    
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" 
-                               class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
-                               id="username" 
-                               name="username" 
-                               required
-                               autofocus>
-                        {% if form.username.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.username.errors|join:", " }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <label for="password" class="form-label">Password</label>
-                            <a href="{% url 'hms:password_reset' %}" class="small text-muted">Forgot password?</a>
-                        </div>
-                        <input type="password" 
-                               class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
-                               id="password" 
-                               name="password" 
-                               required>
-                        {% if form.password.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.password.errors|join:", " }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                        </button>
-                    </div>
-                </form>
-                
-                <div class="text-center mt-4">
-                    <p class="mb-0">Don't have an account? 
-                        <a href="{% url 'hms:register' %}" class="text-primary">Sign up</a>
-                    </p>
+
+        <div class="login-body">
+            <form method="post" action="{% url 'hms:login' %}">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger rounded-3 mb-4">
+                    {{ form.non_field_errors|join:", " }}
                 </div>
-            </div>
-        </div>
-        
-        <div class="text-center mt-4">
-            <p class="text-muted small">
-                &copy; {% now "Y" %} Hostel Meal System. All rights reserved.
-            </p>
+                {% endif %}
+
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                        id="username" name="username" placeholder="Username" required autofocus>
+                    <label for="username">Username</label>
+                    {% if form.username.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.username.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                        id="password" name="password" placeholder="Password" required>
+                    <label for="password">Password</label>
+                    {% if form.password.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.password.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-login">
+                    Sign In
+                </button>
+
+                <div class="forgot-password">
+                    <a href="{% url 'hms:password_reset' %}">Forgot your password?</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
