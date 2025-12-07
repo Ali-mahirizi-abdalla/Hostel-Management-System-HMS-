@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Count
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, time
 from .models import StudentProfile, MealConfirmation, ActivitySchedule, Announcement, MealTimingOverride
 from .forms import StudentRegistrationForm
 
@@ -395,8 +395,21 @@ def early_breakfast_list(request):
         messages.error(request, 'Access denied')
         return redirect('hms:student_dashboard')
     
-    meal_date = request.GET.get('date', str(date.today()))
-    meal_date = datetime.strptime(meal_date, '%Y-%m-%d').date()
+    meal_date_str = request.GET.get('date', str(date.today()))
+    
+    # Try multiple date formats
+    meal_date = None
+    date_formats = ['%Y-%m-%d', '%b. %d, %Y', '%B %d, %Y', '%d/%m/%Y', '%m/%d/%Y', '%b %d, %Y']
+    for fmt in date_formats:
+        try:
+            meal_date = datetime.strptime(meal_date_str, fmt).date()
+            break
+        except ValueError:
+            continue
+    
+    # Fallback to today if no format matches
+    if meal_date is None:
+        meal_date = date.today()
     
     students = MealConfirmation.get_early_breakfast_students(meal_date)
     
@@ -415,8 +428,21 @@ def daily_report(request):
         messages.error(request, 'Access denied')
         return redirect('hms:student_dashboard')
     
-    meal_date = request.GET.get('date', str(date.today()))
-    meal_date = datetime.strptime(meal_date, '%Y-%m-%d').date()
+    meal_date_str = request.GET.get('date', str(date.today()))
+    
+    # Try multiple date formats
+    meal_date = None
+    date_formats = ['%Y-%m-%d', '%b. %d, %Y', '%B %d, %Y', '%d/%m/%Y', '%m/%d/%Y', '%b %d, %Y']
+    for fmt in date_formats:
+        try:
+            meal_date = datetime.strptime(meal_date_str, fmt).date()
+            break
+        except ValueError:
+            continue
+    
+    # Fallback to today if no format matches
+    if meal_date is None:
+        meal_date = date.today()
     
     # Get all meal confirmations for the date
     confirmations = MealConfirmation.objects.filter(date=meal_date).select_related('student__user')
