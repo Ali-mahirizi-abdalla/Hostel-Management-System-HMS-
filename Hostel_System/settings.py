@@ -10,9 +10,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================
 # SECURITY
 # ============================================
-SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-key')
+SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-key-for-dev-only')
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['*']
+
+# Render-specific host configuration
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+ALLOWED_HOSTS = []
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+ALLOWED_HOSTS += ['.onrender.com', 'localhost', '127.0.0.1']
+
+# CSRF protection
+CSRF_TRUSTED_ORIGINS = []
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+CSRF_TRUSTED_ORIGINS += ['https://*.onrender.com']
+
+# Production security
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # ============================================
 # INSTALLED APPS
@@ -33,13 +52,12 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    
+    # Whitenoise
+    'whitenoise.runserver_nostatic',
 ]
 
 SITE_ID = 1
-
-# Debug Toolbar only in development
-if DEBUG:
-    INSTALLED_APPS += ['debug_toolbar']
 
 # ============================================
 # MIDDLEWARE
@@ -53,13 +71,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # Add this line for older allauth versions
     'allauth.account.middleware.AccountMiddleware',
 ]
-
-if DEBUG:
-    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
 # ============================================
 # URL CONFIG
@@ -88,13 +101,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Hostel_System.wsgi.application'
 
 # ============================================
-# DATABASE (Railway PostgreSQL)
+# DATABASE
 # ============================================
 DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
-        conn_max_age=600,
-        ssl_require=False,
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600
     )
 }
 
@@ -169,11 +181,16 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # ============================================
-# DEBUG TOOLBAR
+# EMAIL CONFIGURATION
 # ============================================
-INTERNAL_IPS = ['127.0.0.1']
-
-# ============================================
-# EMAIL (DEV ONLY)
-# ============================================
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # For production - you can set up real email later
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    # Uncomment and set these when ready:
+    # EMAIL_HOST = os.getenv('EMAIL_HOST')
+    # EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+    # EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+    # EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+    # EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')

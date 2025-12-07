@@ -100,6 +100,7 @@ body {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     transition: background-color var(--transition-slow), color var(--transition-slow);
+    perspective: 1000px;
 }
 
 /* Animated Gradient Overlay */
@@ -150,6 +151,256 @@ body::after {
     100% {
         opacity: 0.8;
         transform: scale(1.1) rotate(2deg);
+    }
+}
+
+/* ==================== GLOWING MARGIN BORDERS ==================== */
+.glow-border-left,
+.glow-border-right,
+.glow-border-top,
+.glow-border-bottom {
+    position: fixed;
+    z-index: 9998;
+    pointer-events: none;
+}
+
+.glow-border-left {
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg,
+            transparent 0%,
+            var(--primary) 20%,
+            var(--secondary) 40%,
+            var(--accent) 60%,
+            var(--primary) 80%,
+            transparent 100%);
+    background-size: 100% 200%;
+    animation: glowBorderVertical 4s ease-in-out infinite;
+    box-shadow: 0 0 20px var(--primary), 0 0 40px var(--secondary), 0 0 60px var(--accent);
+}
+
+.glow-border-right {
+    right: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg,
+            transparent 0%,
+            var(--accent) 20%,
+            var(--secondary) 40%,
+            var(--primary) 60%,
+            var(--accent) 80%,
+            transparent 100%);
+    background-size: 100% 200%;
+    animation: glowBorderVertical 4s ease-in-out infinite reverse;
+    box-shadow: 0 0 20px var(--accent), 0 0 40px var(--secondary), 0 0 60px var(--primary);
+}
+
+.glow-border-top {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            var(--primary) 20%,
+            var(--secondary) 50%,
+            var(--accent) 80%,
+            transparent 100%);
+    background-size: 200% 100%;
+    animation: glowBorderHorizontal 5s ease-in-out infinite;
+    box-shadow: 0 0 20px var(--primary), 0 0 40px var(--secondary), 0 0 60px var(--accent);
+}
+
+.glow-border-bottom {
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            var(--accent) 20%,
+            var(--secondary) 50%,
+            var(--primary) 80%,
+            transparent 100%);
+    background-size: 200% 100%;
+    animation: glowBorderHorizontal 5s ease-in-out infinite reverse;
+    box-shadow: 0 0 20px var(--accent), 0 0 40px var(--secondary), 0 0 60px var(--primary);
+}
+
+@keyframes glowBorderVertical {
+
+    0%,
+    100% {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 0% 100%;
+    }
+}
+
+@keyframes glowBorderHorizontal {
+
+    0%,
+    100% {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 100% 0%;
+    }
+}
+
+/* Corner Glow Orbs */
+.corner-glow {
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+    animation: cornerPulse 6s ease-in-out infinite;
+}
+
+.corner-glow.top-left {
+    top: -50px;
+    left: -50px;
+    background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+}
+
+.corner-glow.top-right {
+    top: -50px;
+    right: -50px;
+    background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+    animation-delay: 1.5s;
+}
+
+.corner-glow.bottom-left {
+    bottom: -50px;
+    left: -50px;
+    background: radial-gradient(circle, var(--success) 0%, transparent 70%);
+    animation-delay: 3s;
+}
+
+.corner-glow.bottom-right {
+    bottom: -50px;
+    right: -50px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    animation-delay: 4.5s;
+}
+
+@keyframes cornerPulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1.3);
+    }
+}
+
+/* ==================== 3D FLOATING ELEMENTS ==================== */
+.floating-3d-cube {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    transform-style: preserve-3d;
+    animation: float3D 20s linear infinite;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.floating-3d-cube div {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg,
+            rgba(99, 102, 241, 0.1) 0%,
+            rgba(139, 92, 246, 0.05) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+@keyframes float3D {
+    0% {
+        transform: rotateX(0deg) rotateY(0deg) translateY(0);
+    }
+
+    25% {
+        transform: rotateX(90deg) rotateY(90deg) translateY(-30px);
+    }
+
+    50% {
+        transform: rotateX(180deg) rotateY(180deg) translateY(0);
+    }
+
+    75% {
+        transform: rotateX(270deg) rotateY(270deg) translateY(30px);
+    }
+
+    100% {
+        transform: rotateX(360deg) rotateY(360deg) translateY(0);
+    }
+}
+
+/* Aurora Effect */
+.aurora {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.aurora-layer {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: linear-gradient(45deg,
+            transparent 30%,
+            rgba(99, 102, 241, 0.03) 40%,
+            rgba(139, 92, 246, 0.05) 50%,
+            rgba(236, 72, 153, 0.03) 60%,
+            transparent 70%);
+    animation: auroraMove 25s ease-in-out infinite;
+}
+
+.aurora-layer:nth-child(2) {
+    animation-delay: -5s;
+    animation-duration: 30s;
+}
+
+.aurora-layer:nth-child(3) {
+    animation-delay: -10s;
+    animation-duration: 35s;
+}
+
+@keyframes auroraMove {
+
+    0%,
+    100% {
+        transform: rotate(0deg) translateX(0) translateY(0);
+    }
+
+    33% {
+        transform: rotate(120deg) translateX(50px) translateY(-50px);
+    }
+
+    66% {
+        transform: rotate(240deg) translateX(-50px) translateY(50px);
     }
 }
 

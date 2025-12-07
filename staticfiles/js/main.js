@@ -1,6 +1,6 @@
 /**
  * Smart Hostel Management System
- * Premium Interactive JavaScript with Theme Toggle
+ * Premium Interactive JavaScript with 3D Effects & Glowing UI
  */
 
 // ==================== DOM Ready ====================
@@ -21,9 +21,21 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeSmoothScroll();
     initializeKeyboardNavigation();
 
+    // New 3D & Glow Effects
+    initializeGlowingBorders();
+    initializeAuroraEffect();
+    initialize3DShapes();
+    initializeMouseTrail();
+    initializeMagneticCursor();
+    initializeParallaxDepth();
+    initializeNeonText();
+    initializeHolographicCards();
+    initializeElectricSparks();
+
     console.log('🏨 Smart Hostel Management System Initialized');
-    console.log('✨ Premium UI Effects Active');
+    console.log('✨ Premium 3D UI Effects Active');
     console.log('🌙 Theme System Ready');
+    console.log('⚡ Glowing Borders Active');
 });
 
 // ==================== Theme Management ====================
@@ -106,16 +118,285 @@ function initializePage() {
 
     // Add hover sound effect (optional)
     addHoverSounds();
+
+    // Initialize sound system
+    initializeSoundSystem();
 }
 
-function addHoverSounds() {
-    // Optional: Add subtle hover sounds for interactive elements
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(btn => {
+// ==================== SOUND & HAPTIC FEEDBACK SYSTEM ====================
+let audioContext = null;
+let soundEnabled = true;
+
+function initializeSoundSystem() {
+    // Create audio context on first user interaction
+    const initAudio = () => {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('🔊 Sound System Initialized');
+        }
+        document.removeEventListener('click', initAudio);
+        document.removeEventListener('touchstart', initAudio);
+    };
+
+    document.addEventListener('click', initAudio);
+    document.addEventListener('touchstart', initAudio);
+
+    // Add sound toggle button
+    createSoundToggle();
+
+    // Attach sounds to elements
+    attachSoundEffects();
+}
+
+function createSoundToggle() {
+    const toggle = document.createElement('button');
+    toggle.className = 'sound-toggle';
+    toggle.setAttribute('aria-label', 'Toggle sound effects');
+    toggle.innerHTML = `<span class="sound-on">🔊</span><span class="sound-off">🔇</span>`;
+    toggle.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        z-index: 999;
+        transition: all 0.3s ease;
+    `;
+
+    toggle.querySelector('.sound-off').style.display = 'none';
+
+    toggle.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        toggle.querySelector('.sound-on').style.display = soundEnabled ? 'block' : 'none';
+        toggle.querySelector('.sound-off').style.display = soundEnabled ? 'none' : 'block';
+
+        if (soundEnabled) {
+            playSound('toggle', 800, 0.1, 'sine');
+            hapticFeedback('light');
+        }
+
+        showNotification(soundEnabled ? 'Sound enabled' : 'Sound disabled', 'info', 2000);
+    });
+
+    toggle.addEventListener('mouseenter', () => {
+        toggle.style.transform = 'scale(1.1)';
+    });
+
+    toggle.addEventListener('mouseleave', () => {
+        toggle.style.transform = '';
+    });
+
+    document.body.appendChild(toggle);
+}
+
+function attachSoundEffects() {
+    // Button hover sounds
+    document.querySelectorAll('.btn').forEach(btn => {
         btn.addEventListener('mouseenter', () => {
-            // Could add audio feedback here
+            playSound('hover', 600, 0.05, 'sine');
+            hapticFeedback('light');
+        });
+
+        btn.addEventListener('click', () => {
+            if (btn.classList.contains('btn-primary')) {
+                playSound('click', 400, 0.15, 'square');
+            } else if (btn.classList.contains('btn-success')) {
+                playSound('success', 523.25, 0.1, 'sine'); // C5
+                setTimeout(() => playSound('success', 659.25, 0.1, 'sine'), 100); // E5
+                setTimeout(() => playSound('success', 783.99, 0.1, 'sine'), 200); // G5
+            } else {
+                playSound('click', 300, 0.1, 'triangle');
+            }
+            hapticFeedback('medium');
         });
     });
+
+    // Navigation links
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('mouseenter', () => {
+            playSound('hover', 500, 0.03, 'sine');
+        });
+
+        link.addEventListener('click', () => {
+            playSound('navigate', 350, 0.08, 'triangle');
+            hapticFeedback('light');
+        });
+    });
+
+    // Meal option selections
+    document.querySelectorAll('.meal-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                // Success sound - ascending notes
+                playSound('select', 440, 0.1, 'sine');
+                setTimeout(() => playSound('select', 554.37, 0.1, 'sine'), 80);
+                setTimeout(() => playSound('select', 659.25, 0.12, 'sine'), 160);
+                hapticFeedback('success');
+            } else {
+                // Deselect sound - descending note
+                playSound('deselect', 350, 0.08, 'triangle');
+                hapticFeedback('light');
+            }
+        });
+    });
+
+    // Card hover sounds
+    document.querySelectorAll('.glass-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            playSound('cardHover', 200, 0.02, 'sine');
+        });
+    });
+
+    // Gallery item sounds
+    document.querySelectorAll('.gallery-container').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            playSound('gallery', 450, 0.05, 'sine');
+            hapticFeedback('light');
+        });
+    });
+
+    // Form input sounds
+    document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(input => {
+        input.addEventListener('focus', () => {
+            playSound('focus', 550, 0.04, 'sine');
+        });
+
+        input.addEventListener('input', utils.debounce(() => {
+            playSound('type', 800 + Math.random() * 200, 0.02, 'sine');
+        }, 50));
+    });
+
+    // Checkbox/toggle sounds
+    document.querySelectorAll('.form-check-input').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                playSound('check', 600, 0.08, 'sine');
+                setTimeout(() => playSound('check', 800, 0.06, 'sine'), 100);
+            } else {
+                playSound('uncheck', 400, 0.06, 'triangle');
+            }
+            hapticFeedback('light');
+        });
+    });
+}
+
+// Core sound generation using Web Audio API
+function playSound(type, frequency = 440, volume = 0.1, waveType = 'sine') {
+    if (!soundEnabled || !audioContext) return;
+
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.type = waveType;
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+        // Volume envelope
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+    } catch (e) {
+        console.log('Sound play error:', e);
+    }
+}
+
+// Play a musical chord
+function playChord(frequencies, volume = 0.08, duration = 0.3) {
+    if (!soundEnabled || !audioContext) return;
+
+    frequencies.forEach((freq, index) => {
+        setTimeout(() => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }, index * 50);
+    });
+}
+
+// Notification sounds
+function playNotificationSound(type) {
+    if (!soundEnabled || !audioContext) return;
+
+    switch (type) {
+        case 'success':
+            playChord([523.25, 659.25, 783.99], 0.1, 0.4); // C Major
+            break;
+        case 'error':
+            playSound('error', 200, 0.15, 'sawtooth');
+            setTimeout(() => playSound('error', 150, 0.12, 'sawtooth'), 150);
+            break;
+        case 'warning':
+            playSound('warning', 400, 0.1, 'triangle');
+            setTimeout(() => playSound('warning', 350, 0.08, 'triangle'), 200);
+            break;
+        case 'info':
+            playChord([440, 554.37], 0.06, 0.2);
+            break;
+    }
+}
+
+// Haptic feedback for mobile devices
+function hapticFeedback(type = 'light') {
+    if (!('vibrate' in navigator)) return;
+
+    const patterns = {
+        light: [10],
+        medium: [20],
+        heavy: [30],
+        success: [10, 50, 10, 50, 30],
+        error: [50, 30, 50],
+        warning: [30, 20, 30],
+        double: [15, 50, 15],
+        triple: [10, 30, 10, 30, 10]
+    };
+
+    try {
+        navigator.vibrate(patterns[type] || patterns.light);
+    } catch (e) {
+        // Vibration not supported
+    }
+}
+
+// Enhanced notification with sound
+const originalShowNotification = window.showNotification;
+window.showNotification = function (message, type = 'info', duration = 5000) {
+    playNotificationSound(type);
+    hapticFeedback(type === 'success' ? 'success' : type === 'error' ? 'error' : 'light');
+
+    if (originalShowNotification) {
+        return originalShowNotification(message, type, duration);
+    }
+};
+
+function addHoverSounds() {
+    // Legacy function - now handled by attachSoundEffects()
 }
 
 // ==================== Counter Animation ====================
@@ -1123,3 +1404,530 @@ window.utils = {
         });
     }
 };
+
+// ==================== GLOWING MARGIN BORDERS ====================
+function initializeGlowingBorders() {
+    const borders = ['left', 'right', 'top', 'bottom'];
+
+    borders.forEach(position => {
+        const border = document.createElement('div');
+        border.className = `glow-border-${position}`;
+        document.body.appendChild(border);
+    });
+
+    // Add corner glow orbs
+    const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+    corners.forEach(corner => {
+        const orb = document.createElement('div');
+        orb.className = `corner-glow ${corner}`;
+        document.body.appendChild(orb);
+    });
+}
+
+// ==================== AURORA EFFECT ====================
+function initializeAuroraEffect() {
+    const aurora = document.createElement('div');
+    aurora.className = 'aurora';
+
+    for (let i = 0; i < 3; i++) {
+        const layer = document.createElement('div');
+        layer.className = 'aurora-layer';
+        aurora.appendChild(layer);
+    }
+
+    document.body.prepend(aurora);
+}
+
+// ==================== 3D FLOATING SHAPES ====================
+function initialize3DShapes() {
+    const container = document.createElement('div');
+    container.className = 'floating-shapes-container';
+    container.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        perspective: 1000px;
+        overflow: hidden;
+    `;
+    document.body.prepend(container);
+
+    // Create multiple 3D shapes
+    const shapes = [
+        { type: 'cube', count: 3 },
+        { type: 'pyramid', count: 2 },
+        { type: 'ring', count: 4 },
+        { type: 'orb', count: 5 }
+    ];
+
+    shapes.forEach(({ type, count }) => {
+        for (let i = 0; i < count; i++) {
+            create3DShape(container, type, i);
+        }
+    });
+}
+
+function create3DShape(container, type, index) {
+    const shape = document.createElement('div');
+    const size = Math.random() * 40 + 20;
+    const x = Math.random() * 100;
+    const y = Math.random() * 100;
+    const duration = Math.random() * 30 + 20;
+    const delay = Math.random() * 10;
+    const hue = Math.random() * 60 + 220; // Purple to blue
+
+    shape.className = `floating-3d-shape shape-${type}`;
+
+    if (type === 'cube') {
+        shape.style.cssText = `
+            position: absolute;
+            left: ${x}%;
+            top: ${y}%;
+            width: ${size}px;
+            height: ${size}px;
+            transform-style: preserve-3d;
+            animation: float3DRotate ${duration}s linear infinite;
+            animation-delay: -${delay}s;
+        `;
+        shape.innerHTML = `
+            <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, hsla(${hue}, 70%, 60%, 0.15), transparent); border: 1px solid hsla(${hue}, 70%, 60%, 0.3); transform: translateZ(${size / 2}px); backdrop-filter: blur(2px);"></div>
+            <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, hsla(${hue}, 70%, 60%, 0.1), transparent); border: 1px solid hsla(${hue}, 70%, 60%, 0.2); transform: rotateY(180deg) translateZ(${size / 2}px);"></div>
+            <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, hsla(${hue}, 70%, 60%, 0.1), transparent); border: 1px solid hsla(${hue}, 70%, 60%, 0.2); transform: rotateY(90deg) translateZ(${size / 2}px);"></div>
+            <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, hsla(${hue}, 70%, 60%, 0.1), transparent); border: 1px solid hsla(${hue}, 70%, 60%, 0.2); transform: rotateY(-90deg) translateZ(${size / 2}px);"></div>
+            <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, hsla(${hue}, 70%, 60%, 0.1), transparent); border: 1px solid hsla(${hue}, 70%, 60%, 0.2); transform: rotateX(90deg) translateZ(${size / 2}px);"></div>
+            <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, hsla(${hue}, 70%, 60%, 0.1), transparent); border: 1px solid hsla(${hue}, 70%, 60%, 0.2); transform: rotateX(-90deg) translateZ(${size / 2}px);"></div>
+        `;
+    } else if (type === 'ring') {
+        shape.style.cssText = `
+            position: absolute;
+            left: ${x}%;
+            top: ${y}%;
+            width: ${size * 1.5}px;
+            height: ${size * 1.5}px;
+            border: 2px solid hsla(${hue}, 70%, 60%, 0.3);
+            border-radius: 50%;
+            animation: ringFloat ${duration}s ease-in-out infinite, ringSpin ${duration * 0.5}s linear infinite;
+            animation-delay: -${delay}s;
+            box-shadow: 0 0 20px hsla(${hue}, 70%, 60%, 0.2), inset 0 0 20px hsla(${hue}, 70%, 60%, 0.1);
+        `;
+    } else if (type === 'orb') {
+        shape.style.cssText = `
+            position: absolute;
+            left: ${x}%;
+            top: ${y}%;
+            width: ${size}px;
+            height: ${size}px;
+            background: radial-gradient(circle at 30% 30%, hsla(${hue}, 70%, 70%, 0.4), hsla(${hue}, 70%, 40%, 0.1), transparent);
+            border-radius: 50%;
+            animation: orbFloat ${duration}s ease-in-out infinite;
+            animation-delay: -${delay}s;
+            box-shadow: 0 0 ${size}px hsla(${hue}, 70%, 60%, 0.3);
+            filter: blur(1px);
+        `;
+    } else if (type === 'pyramid') {
+        shape.style.cssText = `
+            position: absolute;
+            left: ${x}%;
+            top: ${y}%;
+            width: 0;
+            height: 0;
+            border-left: ${size / 2}px solid transparent;
+            border-right: ${size / 2}px solid transparent;
+            border-bottom: ${size}px solid hsla(${hue}, 70%, 60%, 0.2);
+            animation: pyramidFloat ${duration}s ease-in-out infinite;
+            animation-delay: -${delay}s;
+            filter: drop-shadow(0 0 10px hsla(${hue}, 70%, 60%, 0.3));
+        `;
+    }
+
+    container.appendChild(shape);
+}
+
+// ==================== MOUSE TRAIL EFFECT ====================
+function initializeMouseTrail() {
+    const trail = [];
+    const trailLength = 20;
+
+    for (let i = 0; i < trailLength; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'mouse-trail-dot';
+        dot.style.cssText = `
+            position: fixed;
+            width: ${12 - i * 0.5}px;
+            height: ${12 - i * 0.5}px;
+            background: radial-gradient(circle, rgba(99, 102, 241, ${0.8 - i * 0.04}), rgba(139, 92, 246, ${0.4 - i * 0.02}));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transition: transform 0.1s ease;
+            opacity: 0;
+            box-shadow: 0 0 ${10 - i * 0.3}px rgba(99, 102, 241, 0.5);
+        `;
+        document.body.appendChild(dot);
+        trail.push({ element: dot, x: 0, y: 0 });
+    }
+
+    let mouseX = 0, mouseY = 0;
+    let isMoving = false;
+    let moveTimeout;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        isMoving = true;
+
+        trail.forEach(dot => dot.element.style.opacity = '1');
+
+        clearTimeout(moveTimeout);
+        moveTimeout = setTimeout(() => {
+            isMoving = false;
+            trail.forEach(dot => dot.element.style.opacity = '0');
+        }, 200);
+    });
+
+    function animateTrail() {
+        let x = mouseX;
+        let y = mouseY;
+
+        trail.forEach((dot, index) => {
+            const nextX = x;
+            const nextY = y;
+
+            dot.element.style.left = `${dot.x}px`;
+            dot.element.style.top = `${dot.y}px`;
+
+            dot.x += (nextX - dot.x) * (0.35 - index * 0.01);
+            dot.y += (nextY - dot.y) * (0.35 - index * 0.01);
+
+            x = dot.x;
+            y = dot.y;
+        });
+
+        requestAnimationFrame(animateTrail);
+    }
+
+    animateTrail();
+}
+
+// ==================== MAGNETIC CURSOR EFFECT ====================
+function initializeMagneticCursor() {
+    const magneticElements = document.querySelectorAll('.btn, .glass-card, .nav-link, .meal-label');
+
+    magneticElements.forEach(el => {
+        el.addEventListener('mousemove', (e) => {
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            el.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(1.02)`;
+            el.style.boxShadow = `
+                ${-x * 0.05}px ${-y * 0.05}px 30px rgba(99, 102, 241, 0.3),
+                ${x * 0.05}px ${y * 0.05}px 30px rgba(139, 92, 246, 0.3)
+            `;
+        });
+
+        el.addEventListener('mouseleave', () => {
+            el.style.transform = '';
+            el.style.boxShadow = '';
+        });
+    });
+}
+
+// ==================== PARALLAX DEPTH EFFECT ====================
+function initializeParallaxDepth() {
+    const depthElements = document.querySelectorAll('.glass-card, .gallery-container, .login-card');
+
+    document.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.clientX) / 50;
+        const y = (window.innerHeight / 2 - e.clientY) / 50;
+
+        depthElements.forEach((el, index) => {
+            const depth = (index % 3 + 1) * 0.5;
+            el.style.transform = `
+                perspective(1000px)
+                rotateY(${x * depth}deg)
+                rotateX(${-y * depth}deg)
+                translateZ(${depth * 10}px)
+            `;
+        });
+    });
+}
+
+// ==================== NEON TEXT EFFECT ====================
+function initializeNeonText() {
+    const titles = document.querySelectorAll('.page-title, .card-title, h1, h2');
+
+    titles.forEach(title => {
+        title.classList.add('neon-text');
+
+        // Add flicker effect occasionally
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                title.style.textShadow = 'none';
+                setTimeout(() => {
+                    title.style.textShadow = '';
+                }, 50);
+            }
+        }, 100);
+    });
+}
+
+// ==================== HOLOGRAPHIC CARDS ====================
+function initializeHolographicCards() {
+    const cards = document.querySelectorAll('.glass-card');
+
+    cards.forEach(card => {
+        const holo = document.createElement('div');
+        holo.className = 'holo-effect';
+        holo.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                105deg,
+                transparent 20%,
+                rgba(255, 255, 255, 0.03) 25%,
+                rgba(255, 255, 255, 0.05) 30%,
+                transparent 35%
+            );
+            background-size: 200% 200%;
+            pointer-events: none;
+            border-radius: inherit;
+            animation: holoShine 8s ease-in-out infinite;
+        `;
+        card.style.position = 'relative';
+        card.appendChild(holo);
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+            holo.style.background = `
+                radial-gradient(circle at ${x}% ${y}%, 
+                    rgba(99, 102, 241, 0.15) 0%,
+                    rgba(139, 92, 246, 0.1) 25%,
+                    rgba(236, 72, 153, 0.05) 50%,
+                    transparent 70%
+                )
+            `;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            holo.style.background = '';
+        });
+    });
+}
+
+// ==================== ELECTRIC SPARKS ====================
+function initializeElectricSparks() {
+    const buttons = document.querySelectorAll('.btn-primary, .btn-success');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            createElectricBurst(e.clientX, e.clientY);
+        });
+
+        btn.addEventListener('mouseenter', () => {
+            btn.classList.add('electric-hover');
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.classList.remove('electric-hover');
+        });
+    });
+}
+
+function createElectricBurst(x, y) {
+    const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#06b6d4', '#10b981'];
+
+    for (let i = 0; i < 12; i++) {
+        const spark = document.createElement('div');
+        const angle = (i / 12) * Math.PI * 2;
+        const velocity = Math.random() * 100 + 50;
+        const size = Math.random() * 4 + 2;
+
+        spark.style.cssText = `
+            position: fixed;
+            left: ${x}px;
+            top: ${y}px;
+            width: ${size}px;
+            height: ${size * 3}px;
+            background: linear-gradient(to bottom, ${colors[Math.floor(Math.random() * colors.length)]}, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: rotate(${angle}rad);
+            animation: electricSpark 0.6s ease-out forwards;
+            --tx: ${Math.cos(angle) * velocity}px;
+            --ty: ${Math.sin(angle) * velocity}px;
+            box-shadow: 0 0 10px currentColor;
+        `;
+
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 600);
+    }
+}
+
+// ==================== DYNAMIC 3D STYLES ====================
+const styles3D = document.createElement('style');
+styles3D.textContent = `
+    @keyframes float3DRotate {
+        0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
+        25% { transform: rotateX(90deg) rotateY(45deg) rotateZ(45deg) translateY(-20px); }
+        50% { transform: rotateX(180deg) rotateY(90deg) rotateZ(90deg) translateY(0); }
+        75% { transform: rotateX(270deg) rotateY(135deg) rotateZ(135deg) translateY(20px); }
+        100% { transform: rotateX(360deg) rotateY(180deg) rotateZ(180deg) translateY(0); }
+    }
+    
+    @keyframes ringFloat {
+        0%, 100% { transform: translateY(0) rotateX(45deg); }
+        50% { transform: translateY(-30px) rotateX(45deg); }
+    }
+    
+    @keyframes ringSpin {
+        from { transform: rotateX(45deg) rotateZ(0deg); }
+        to { transform: rotateX(45deg) rotateZ(360deg); }
+    }
+    
+    @keyframes orbFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+        25% { transform: translate(20px, -20px) scale(1.1); opacity: 0.8; }
+        50% { transform: translate(0, -40px) scale(1); opacity: 0.6; }
+        75% { transform: translate(-20px, -20px) scale(0.9); opacity: 0.4; }
+    }
+    
+    @keyframes pyramidFloat {
+        0%, 100% { transform: translateY(0) rotateY(0deg); }
+        50% { transform: translateY(-25px) rotateY(180deg); }
+    }
+    
+    @keyframes holoShine {
+        0%, 100% { background-position: -200% -200%; }
+        50% { background-position: 200% 200%; }
+    }
+    
+    @keyframes electricSpark {
+        0% { 
+            opacity: 1; 
+            transform: translate(0, 0) rotate(var(--angle, 0deg)) scale(1);
+        }
+        100% { 
+            opacity: 0; 
+            transform: translate(var(--tx), var(--ty)) rotate(var(--angle, 0deg)) scale(0);
+        }
+    }
+    
+    .neon-text {
+        text-shadow: 
+            0 0 5px var(--primary),
+            0 0 10px var(--primary),
+            0 0 20px var(--primary),
+            0 0 40px var(--secondary),
+            0 0 80px var(--secondary);
+        animation: neonPulse 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes neonPulse {
+        from {
+            text-shadow: 
+                0 0 5px var(--primary),
+                0 0 10px var(--primary),
+                0 0 20px var(--primary),
+                0 0 40px var(--secondary);
+        }
+        to {
+            text-shadow: 
+                0 0 10px var(--primary),
+                0 0 20px var(--primary),
+                0 0 40px var(--primary),
+                0 0 80px var(--secondary),
+                0 0 120px var(--accent);
+        }
+    }
+    
+    .electric-hover {
+        animation: electricPulse 0.15s ease-in-out infinite;
+    }
+    
+    @keyframes electricPulse {
+        0%, 100% { 
+            box-shadow: 
+                0 0 5px var(--primary),
+                0 0 10px var(--primary),
+                0 0 20px var(--secondary);
+        }
+        50% { 
+            box-shadow: 
+                0 0 10px var(--primary),
+                0 0 20px var(--primary),
+                0 0 40px var(--secondary),
+                0 0 60px var(--accent);
+        }
+    }
+    
+    /* Enhanced glass cards with 3D depth */
+    .glass-card {
+        transform-style: preserve-3d;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .glass-card::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(
+            45deg,
+            var(--primary),
+            var(--secondary),
+            var(--accent),
+            var(--primary)
+        );
+        background-size: 400% 400%;
+        border-radius: calc(var(--radius-lg) + 2px);
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        animation: gradientRotate 8s linear infinite;
+        filter: blur(15px);
+    }
+    
+    .glass-card:hover::before {
+        opacity: 0.5;
+    }
+    
+    @keyframes gradientRotate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Floating animation for shapes */
+    .floating-shapes-container {
+        transform-style: preserve-3d;
+    }
+    
+    /* Reduce motion for accessibility */
+    @media (prefers-reduced-motion: reduce) {
+        .floating-3d-shape,
+        .mouse-trail-dot,
+        .aurora-layer,
+        .glow-border-left,
+        .glow-border-right,
+        .glow-border-top,
+        .glow-border-bottom,
+        .corner-glow {
+            animation: none !important;
+            opacity: 0 !important;
+        }
+    }
+`;
+document.head.appendChild(styles3D);
