@@ -1,18 +1,22 @@
 import os
 from pathlib import Path
+import dj_database_url
 
-# Build paths inside the project
+# ============================================
+# BASE DIRECTORY
+# ============================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-your-secret-key-here'  # Change this in production
+# ============================================
+# SECURITY
+# ============================================
+SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-key')
+DEBUG = os.getenv("DEBUG", "False") == "True"
+ALLOWED_HOSTS = ['*']
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*', '.vercel.app', '.now.sh', 'localhost', '127.0.0.1']
-
-# Application definition
+# ============================================
+# INSTALLED APPS
+# ============================================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -20,10 +24,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # Required for allauth
-    'hms',
-    'debug_toolbar',
-    # Allauth apps
+    'django.contrib.sites',
+
+    'hms',  # Your app
+
+    # Allauth
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -32,20 +37,38 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
+# Debug Toolbar only in development
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+
+# ============================================
+# MIDDLEWARE
+# ============================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'allauth.account.middleware.AccountMiddleware',  # Required for allauth
+
+    # Add this line for older allauth versions
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
+if DEBUG:
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+
+# ============================================
+# URL CONFIG
+# ============================================
 ROOT_URLCONF = 'Hostel_System.urls'
 
+# ============================================
+# TEMPLATES
+# ============================================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -64,88 +87,93 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Hostel_System.wsgi.application'
 
-# Database
+# ============================================
+# DATABASE (Railway PostgreSQL)
+# ============================================
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
+        conn_max_age=600,
+        ssl_require=False,
+    )
 }
 
-# Password validation
+# ============================================
+# PASSWORD VALIDATION
+# ============================================
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# Internationalization
+# ============================================
+# INTERNATIONALIZATION
+# ============================================
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Africa/Nairobi'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# ============================================
+# STATIC FILES
+# ============================================
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'hms/static'),
-]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'hms/static')]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
+# ============================================
+# MEDIA FILES
+# ============================================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
+# ============================================
+# DEFAULT PRIMARY KEY FIELD
+# ============================================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Debug Toolbar settings
-INTERNAL_IPS = ['127.0.0.1']
-
-# Email settings (for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Authentication URLs
+# ============================================
+# AUTHENTICATION
+# ============================================
 LOGIN_URL = 'hms:login'
 LOGIN_REDIRECT_URL = 'hms:student_dashboard'
 LOGOUT_REDIRECT_URL = 'hms:login'
 
-# Django Allauth Configuration
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Allauth settings
+# ============================================
+# ALLAUTH SETTINGS
+# ============================================
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 SOCIALACCOUNT_AUTO_SIGNUP = True
 
-# Google OAuth settings (you'll need to add these in Google Cloud Console)
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
         'APP': {
-            'client_id': 'YOUR_GOOGLE_CLIENT_ID',  # Replace with actual client ID
-            'secret': 'YOUR_GOOGLE_CLIENT_SECRET',  # Replace with actual secret
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
             'key': ''
         }
     }
 }
+
+# ============================================
+# DEBUG TOOLBAR
+# ============================================
+INTERNAL_IPS = ['127.0.0.1']
+
+# ============================================
+# EMAIL (DEV ONLY)
+# ============================================
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
