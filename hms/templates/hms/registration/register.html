@@ -1,0 +1,144 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}Register - Hostel Meal System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 600px;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .register-header {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+        padding: 2rem;
+        text-align: center;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .register-body {
+        padding: 2.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-wrapper">
+    <div class="register-card">
+        <div class="register-header">
+            <h2 style="margin-bottom: 0.5rem;">Create Account</h2>
+            <p class="text-muted">Join the hostel meal management system</p>
+        </div>
+
+        <div class="register-body">
+            <form method="post" action="{% url 'hms:register' %}">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {{ form.non_field_errors|join:", " }}
+                </div>
+                {% endif %}
+
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                        <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}"
+                            class="form-input" required value="{{ form.first_name.value|default:'' }}">
+                        {% if form.first_name.errors %}
+                        <small class="text-danger">{{ form.first_name.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                        <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}"
+                            class="form-input" required value="{{ form.last_name.value|default:'' }}">
+                        {% if form.last_name.errors %}
+                        <small class="text-danger">{{ form.last_name.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                    <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
+                        class="form-input" required value="{{ form.username.value|default:'' }}">
+                    {% if form.username.errors %}
+                    <small class="text-danger">{{ form.username.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}"
+                        class="form-input" required value="{{ form.email.value|default:'' }}">
+                    {% if form.email.errors %}
+                    <small class="text-danger">{{ form.email.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="{{ form.room_number.id_for_label }}" class="form-label">Room Number</label>
+                        <input type="text" name="{{ form.room_number.name }}" id="{{ form.room_number.id_for_label }}"
+                            class="form-input" required value="{{ form.room_number.value|default:'' }}">
+                        {% if form.room_number.errors %}
+                        <small class="text-danger">{{ form.room_number.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                        <input type="text" name="{{ form.phone_number.name }}" id="{{ form.phone_number.id_for_label }}"
+                            class="form-input" required value="{{ form.phone_number.value|default:'' }}">
+                        {% if form.phone_number.errors %}
+                        <small class="text-danger">{{ form.phone_number.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="id_password1" class="form-label">Password</label>
+                        <input type="password" name="password1" id="id_password1" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_password_2" class="form-label">Confirm Password</label>
+                        <input type="password" name="password2" id="id_password_2" class="form-input" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+                    Create Account
+                </button>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted">Already have an account? <a href="{% url 'hms:login' %}">Sign In</a></p>
+                    <a href="https://student.pu.ac.ke/Account/Login?ReturnUrl=%2fFinance%2fPesaflowPayment"
+                        target="_blank" class="btn btn-secondary btn-block"
+                        style="margin-top: 1rem; background: rgba(255, 255, 255, 0.1); border-color: rgba(255,255,255,0.2);">
+                        Login via University Portal ↗
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

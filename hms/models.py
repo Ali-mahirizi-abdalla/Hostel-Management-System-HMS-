@@ -9,6 +9,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     room_number = models.CharField(max_length=10)
     phone_number = models.CharField(max_length=15, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     is_away = models.BooleanField(default=False)
     away_from_date = models.DateField(null=True, blank=True)
     away_to_date = models.DateField(null=True, blank=True)

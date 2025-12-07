@@ -1,15 +1,35 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Count
 from datetime import date, timedelta, datetime
 from .models import StudentProfile, MealConfirmation, ActivitySchedule, Announcement, MealTimingOverride
+from .forms import StudentRegistrationForm
 
 
 # ==================== Authentication Views ====================
+
+def register_student(request):
+    """Register a new student"""
+    if request.user.is_authenticated:
+        return redirect('hms:home')
+        
+    if request.method == 'POST':
+        form = StudentRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Registration successful! Welcome to the hostel.')
+            return redirect('hms:student_dashboard')
+        else:
+            print("REGISTRATION ERRORS:", form.errors)
+    else:
+        form = StudentRegistrationForm()
+    
+    return render(request, 'hms/registration/register.html', {'form': form})
 
 def home(request):
     """Home page - redirect based on user role"""
@@ -26,9 +46,17 @@ def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        print(f"DEBUG: Login attempt for user '{username}'")
+        
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
+            print(f"DEBUG: Authentication successful for '{username}'")
+            if not user.is_active:
+                print(f"DEBUG: User '{username}' is inactive")
+                messages.error(request, 'Your account is inactive.')
+                return render(request, 'hms/login.html')
+
             login(request, user)
             # Redirect based on user role
             if hasattr(user, 'student_profile'):
@@ -38,7 +66,17 @@ def user_login(request):
             else:
                 return redirect('hms:student_dashboard')
         else:
+            print(f"DEBUG: Authentication failed for '{username}'")
+            # Check if user exists to give better debug info (only in console)
+            from django.contrib.auth.models import User
+            if User.objects.filter(username=username).exists():
+                print(f"DEBUG: User '{username}' exists but password mismatch")
+            else:
+                print(f"DEBUG: User '{username}' does not exist")
+                
             messages.error(request, 'Invalid username or password')
+    
+    return render(request, 'hms/login.html')
     
     return render(request, 'hms/login.html')
 
@@ -106,10 +144,26 @@ def confirm_meals(request):
         try:
             student_profile = request.user.student_profile
             meal_date = request.POST.get('date')
-            breakfast = request.POST.get('breakfast') == 'true'
-            lunch = request.POST.get('lunch') == 'true'
-            supper = request.POST.get('supper') == 'true'
-            early_breakfast = request.POST.get('early_breakfast') == 'true'
+            # Handle both standard form submission and potential AJAX
+            breakfast = request.POST.get('breakfast') in ['on', 'true', 'True', True]
+            lunch = request.POST.get('lunch') in ['on', 'true', 'True', True]
+            supper = request.POST.get('supper') in ['on', 'true', 'True', True]
+            early_breakfast = request.POST.get('early_breakfast') in ['on', 'true', 'True', True]
+            
+            # Enforce 8:00 AM lock for breakfast/early breakfast
+            current_time = datetime.now().time()
+            lock_time = time(8, 0)  # 08:00 AM
+            
+            if meal_date == str(date.today()) and current_time > lock_time:
+                # If it's today and past 8 AM, prevent changing breakfast/early breakfast
+                # We fetch existing values to preserve them
+                existing = MealConfirmation.objects.filter(student=student_profile, date=meal_date).first()
+                if existing:
+                    breakfast = existing.breakfast
+                    early_breakfast = existing.early_breakfast_needed
+                else:
+                    breakfast = False
+                    early_breakfast = False
             
             meal_confirmation, created = MealConfirmation.objects.update_or_create(
                 student=student_profile,
@@ -122,18 +176,26 @@ def confirm_meals(request):
                 }
             )
             
-            return JsonResponse({
-                'success': True,
-                'message': 'Meals confirmed successfully',
-                'data': {
-                    'breakfast': meal_confirmation.breakfast,
-                    'lunch': meal_confirmation.lunch,
-                    'supper': meal_confirmation.supper,
-                    'early_breakfast': meal_confirmation.early_breakfast_needed,
-                }
-            })
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Meals confirmed successfully',
+                    'data': {
+                        'breakfast': meal_confirmation.breakfast,
+                        'lunch': meal_confirmation.lunch,
+                        'supper': meal_confirmation.supper,
+                        'early_breakfast': meal_confirmation.early_breakfast_needed,
+                    }
+                })
+            else:
+                messages.success(request, 'Meals confirmed successfully')
+                return redirect('hms:student_dashboard')
         except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': str(e)}, status=400)
+            else:
+                messages.error(request, f'Error confirming meals: {e}')
+                return redirect('hms:student_dashboard')
     
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
@@ -203,6 +265,28 @@ def student_profile(request):
     except StudentProfile.DoesNotExist:
         messages.error(request, 'Student profile not found')
         return redirect('hms:login')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'update_photo' and request.FILES.get('profile_picture'):
+            student_profile.profile_picture = request.FILES['profile_picture']
+            student_profile.save()
+            messages.success(request, 'Profile picture updated!')
+            return redirect('hms:student_profile')
+            
+        elif action == 'update_info':
+            user = request.user
+            user.first_name = request.POST.get('first_name')
+            user.last_name = request.POST.get('last_name')
+            user.save()
+            
+            student_profile.phone_number = request.POST.get('phone_number')
+            student_profile.default_early_breakfast = request.POST.get('default_early_breakfast') == 'on'
+            student_profile.save()
+            
+            messages.success(request, 'Profile information updated!')
+            return redirect('hms:student_profile')
     
     # Get meal history
     meal_history = MealConfirmation.objects.filter(
@@ -247,6 +331,9 @@ def kitchen_dashboard(request):
     # Get students away
     students_away = StudentProfile.objects.filter(is_away=True).count()
     
+    # Get confirmed students for today
+    confirmed_students = MealConfirmation.objects.filter(date=today).select_related('student', 'student__user')
+    
     context = {
         'today': today,
         'tomorrow': tomorrow,
@@ -260,6 +347,7 @@ def kitchen_dashboard(request):
         'tomorrow_early_breakfast': tomorrow_early_breakfast,
         'total_students': total_students,
         'students_away': students_away,
+        'confirmed_students': confirmed_students,
     }
     
     return render(request, 'hms/kitchen/dashboard.html', context)
@@ -271,8 +359,21 @@ def meal_count_api(request):
     if not request.user.is_staff:
         return JsonResponse({'error': 'Access denied'}, status=403)
     
-    meal_date = request.GET.get('date', str(date.today()))
-    meal_date = datetime.strptime(meal_date, '%Y-%m-%d').date()
+    meal_date_str = request.GET.get('date', str(date.today()))
+    
+    # Try multiple date formats
+    meal_date = None
+    date_formats = ['%Y-%m-%d', '%b. %d, %Y', '%B %d, %Y', '%d/%m/%Y', '%m/%d/%Y']
+    for fmt in date_formats:
+        try:
+            meal_date = datetime.strptime(meal_date_str, fmt).date()
+            break
+        except ValueError:
+            continue
+    
+    # Fallback to today if no format matches
+    if meal_date is None:
+        meal_date = date.today()
     
     data = {
         'date': str(meal_date),
@@ -427,3 +528,39 @@ def manage_students(request):
     }
     
     return render(request, 'hms/admin/students.html', context)
+
+
+@login_required
+def export_meals_csv(request):
+    """Export meal confirmations to CSV"""
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Access denied")
+
+    import csv
+    
+    meal_date_str = request.GET.get('date', str(date.today()))
+    try:
+        meal_date = datetime.strptime(meal_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        meal_date = date.today()
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="meals_{meal_date}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Student Name', 'Username/ID', 'Room', 'Breakfast', 'Early Breakfast', 'Lunch', 'Supper'])
+
+    confirmations = MealConfirmation.objects.filter(date=meal_date).select_related('student', 'student__user')
+
+    for conf in confirmations:
+        writer.writerow([
+            conf.student.user.get_full_name(),
+            conf.student.user.username,
+            conf.student.room_number,
+            'Yes' if conf.breakfast else 'No',
+            'Yes' if conf.early_breakfast_needed else 'No',
+            'Yes' if conf.lunch else 'No',
+            'Yes' if conf.supper else 'No',
+        ])
+
+    return response

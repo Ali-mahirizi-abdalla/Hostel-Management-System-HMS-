@@ -7,6 +7,7 @@ app_name = 'hms'
 urlpatterns = [
     # Authentication
     path('', views.home, name='home'),
+    path('register/', views.register_student, name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     
@@ -22,6 +23,7 @@ urlpatterns = [
     path('kitchen/meal-count-api/', views.meal_count_api, name='meal_count_api'),
     path('kitchen/early-breakfast-list/', views.early_breakfast_list, name='early_breakfast_list'),
     path('kitchen/daily-report/', views.daily_report, name='daily_report'),
+    path('kitchen/export-csv/', views.export_meals_csv, name='export_meals_csv'),
     
     # Admin/Warden URLs
     path('admin-panel/dashboard/', views.admin_dashboard, name='admin_dashboard'),

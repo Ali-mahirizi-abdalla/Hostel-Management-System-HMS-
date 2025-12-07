@@ -2,13 +2,13 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from .models import StudentProfile, MealConfirmation, Activity, Announcement, KitchenNote, SpecialMealRequest
+from .models import StudentProfile, MealConfirmation, ActivitySchedule, Announcement
 from datetime import date  # Add this import for date handling
 
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
-        fields = ['room_number', 'phone_number']
+        fields = ['room_number', 'phone_number', 'profile_picture']
         widgets = {
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'room_number': forms.TextInput(attrs={'class': 'form-control'}),
@@ -23,28 +23,43 @@ class StudentRegistrationForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
+        fields = ('username', 'email', 'first_name', 'last_name')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        
+        if commit:
+            user.save()
+            StudentProfile.objects.create(
+                user=user,
+                room_number=self.cleaned_data['room_number'],
+                phone_number=self.cleaned_data['phone_number']
+            )
+        return user
 
 class MealConfirmationForm(forms.ModelForm):
     class Meta:
         model = MealConfirmation
-        fields = ['breakfast', 'lunch', 'dinner', 'early_breakfast']
+        fields = ['breakfast', 'lunch', 'supper', 'early_breakfast_needed']
         widgets = {
             'breakfast': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'lunch': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'dinner': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'early_breakfast': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'supper': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'early_breakfast_needed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-class ActivityForm(forms.ModelForm):
-    class Meta:
-        model = Activity
-        fields = '__all__'
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
-            'start_time': forms.TimeInput(attrs={'type': 'time'}),
-            'end_time': forms.TimeInput(attrs={'type': 'time'}),
-        }
+# class ActivityForm(forms.ModelForm):
+#     class Meta:
+#         model = Activity
+#         fields = '__all__'
+#         widgets = {
+#             'description': forms.Textarea(attrs={'rows': 3}),
+#             'start_time': forms.TimeInput(attrs={'type': 'time'}),
+#             'end_time': forms.TimeInput(attrs={'type': 'time'}),
+#         }
 
 class AnnouncementForm(forms.ModelForm):
     class Meta:
@@ -54,22 +69,22 @@ class AnnouncementForm(forms.ModelForm):
             'message': forms.Textarea(attrs={'rows': 4}),
         }
 
-class KitchenNoteForm(forms.ModelForm):
-    class Meta:
-        model = KitchenNote
-        fields = ['title', 'content', 'is_important']
-        widgets = {
-            'content': forms.Textarea(attrs={'rows': 4}),
-        }
+# class KitchenNoteForm(forms.ModelForm):
+#     class Meta:
+#         model = KitchenNote
+#         fields = ['title', 'content', 'is_important']
+#         widgets = {
+#             'content': forms.Textarea(attrs={'rows': 4}),
+#         }
 
-class SpecialMealRequestForm(forms.ModelForm):
-    class Meta:
-        model = SpecialMealRequest
-        fields = ['meal_type', 'date', 'notes']
-        widgets = {
-            'date': forms.DateInput(attrs={'type': 'date'}),
-            'notes': forms.Textarea(attrs={'rows': 2}),
-        }
+# class SpecialMealRequestForm(forms.ModelForm):
+#     class Meta:
+#         model = SpecialMealRequest
+#         fields = ['meal_type', 'date', 'notes']
+#         widgets = {
+#             'date': forms.DateInput(attrs={'type': 'date'}),
+#             'notes': forms.Textarea(attrs={'rows': 2}),
+#         }
 
 class AwayStatusForm(forms.Form):
     is_away = forms.BooleanField(

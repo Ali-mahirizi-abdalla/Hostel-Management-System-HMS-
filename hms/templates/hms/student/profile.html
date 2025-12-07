@@ -1,127 +1,89 @@
-<!-- templates/hms/student/profile.html -->
 {% extends 'hms/base.html' %}
+{% load static %}
 
 {% block title %}My Profile - Hostel Meal System{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">My Profile</h1>
+<div class="page-header">
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">Manage your account and preferences</p>
 </div>
 
-<div class="row">
-    <div class="col-lg-4">
-        <div class="card mb-4">
-            <div class="card-body text-center">
-                <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=0D6EFD&color=fff&size=128" 
-                     alt="Profile" 
-                     class="rounded-circle mb-3" 
-                     width="128" 
-                     height="128">
-                
-                <h5 class="my-3">{{ user.get_full_name|default:user.username }}</h5>
-                <p class="text-muted mb-1">{{ user.email }}</p>
-                <p class="text-muted mb-4">Room {{ student.room_number }}</p>
-                
-                <div class="d-flex justify-content-center mb-2">
-                    <button type="button" class="btn btn-primary me-2">Change Photo</button>
-                    <button type="button" class="btn btn-outline-primary">Change Password</button>
+<div class="grid grid-3" style="grid-template-columns: 1fr 2fr;">
+    <!-- Profile Card -->
+    <div class="glass-card text-center" data-tilt>
+        <div style="position: relative; display: inline-block; margin-bottom: 1.5rem;">
+            {% if student.profile_picture %}
+            <img src="{{ student.profile_picture.url }}" alt="Profile"
+                style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--glass-border);">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=6366f1&color=fff&size=150"
+                alt="Profile"
+                style="width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--glass-border);">
+            {% endif %}
+
+            <button onclick="document.getElementById('profile_pic_input').click()" class="btn btn-primary"
+                style="position: absolute; bottom: 0; right: 0; padding: 0.5rem; border-radius: 50%; width: 40px; height: 40px;">
+                📷
+            </button>
+        </div>
+
+        <h3 style="margin-bottom: 0.5rem;">{{ user.get_full_name|default:user.username }}</h3>
+        <p class="text-muted" style="margin-bottom: 0.5rem;">{{ user.email }}</p>
+        <div class="glass-card" style="display: inline-block; padding: 0.25rem 1rem; margin-bottom: 1.5rem;">
+            Room {{ student.room_number }}
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="profile_pic_form" style="display: none;">
+            {% csrf_token %}
+            <input type="file" name="profile_picture" id="profile_pic_input" accept="image/*"
+                onchange="document.getElementById('profile_pic_form').submit()">
+            <input type="hidden" name="action" value="update_photo">
+        </form>
+    </div>
+
+    <!-- Settings & Info -->
+    <div class="glass-card">
+        <div class="card-header">
+            <h3 class="card-title">Personal Information</h3>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_info">
+
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-input" value="{{ user.first_name }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-input" value="{{ user.last_name }}">
                 </div>
             </div>
-        </div>
-        
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Meal Preferences</h5>
-                <div class="mb-3">
-                    <label class="form-label">Default Meal Plan</label>
-                    <select class="form-select">
-                        <option>Regular (3 meals/day)</option>
-                        <option>No Breakfast</option>
-                        <option>No Lunch</option>
-                        <option>No Dinner</option>
-                        <option>Custom Plan</option>
-                    </select>
-                </div>
-                <div class="form-check form-switch mb-2">
-                    <input class="form-check-input" type="checkbox" id="defaultEarlyBreakfast" 
-                           {% if student.default_early_breakfast %}checked{% endif %}>
-                    <label class="form-check-label" for="defaultEarlyBreakfast">
-                        Always request early breakfast
+
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" name="phone_number" class="form-input" value="{{ student.phone_number }}">
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="default_early" name="default_early_breakfast" {%
+                        if student.default_early_breakfast %}checked{% endif %}>
+                    <label class="form-check-label" for="default_early">
+                        Always request early breakfast by default
                     </label>
                 </div>
-                <button type="button" class="btn btn-primary">Save Preferences</button>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Personal Information</h5>
-                <form>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="firstName" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="firstName" value="{{ user.first_name }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="lastName" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="lastName" value="{{ user.last_name }}">
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" value="{{ user.email }}">
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone</label>
-                            <input type="tel" class="form-control" id="phone" value="{{ student.phone_number|default:'' }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="room" class="form-label">Room Number</label>
-                            <input type="text" class="form-control" id="room" value="{{ student.room_number }}" disabled>
-                            <div class="form-text">Contact admin to change room number</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Permanent Address</label>
-                        <textarea class="form-control" id="address" rows="2"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="emergencyContact" class="form-label">Emergency Contact</label>
-                        <input type="text" class="form-control" id="emergencyContact">
-                        <div class="form-text">Name and phone number of emergency contact person</div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Update Profile</button>
-                </form>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Change Password</h5>
-                <form>
-                    <div class="mb-3">
-                        <label for="currentPassword" class="form-label">Current Password</label>
-                        <input type="password" class="form-control" id="currentPassword">
-                    </div>
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label">New Password</label>
-                        <input type="password" class="form-control" id="newPassword">
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" id="confirmPassword">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Change Password</button>
-                </form>
-            </div>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
+            <h4 style="margin-bottom: 1rem;">Change Password</h4>
+            <a href="{% url 'hms:password_reset' %}" class="btn btn-secondary">Reset Password</a>
         </div>
     </div>
 </div>
