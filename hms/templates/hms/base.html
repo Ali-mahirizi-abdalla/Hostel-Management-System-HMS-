@@ -5,82 +5,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Hostel Meal System{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=4.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <meta name="theme-color" content="#0f172a">
-    {% block extra_css %}{% endblock %}
+    <title>{% block title %}Hostel Management System{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom customizations can go here */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
 </head>
 
-<body>
-    {% if user.is_authenticated %}
-    <nav class="navbar">
-        <div class="navbar-content">
-            <a href="{% url 'hms:home' %}" class="navbar-brand">
-                <span style="font-size: 1.8rem; margin-right: 0.5rem;">🍽️</span> HMS
-            </a>
+<body class="bg-gray-50 flex flex-col min-h-screen text-gray-800 font-sans">
 
-            <ul class="navbar-menu">
-                {% if user.student_profile %}
-                <li><a href="{% url 'hms:student_dashboard' %}"
-                        class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">Dashboard</a>
-                </li>
-                <li><a href="{% url 'hms:student_profile' %}"
-                        class="nav-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">Profile</a>
-                </li>
-                {% elif user.is_staff %}
-                <li><a href="{% url 'hms:kitchen_dashboard' %}" class="nav-link">Kitchen</a></li>
-                <li><a href="{% url 'hms:admin_dashboard' %}" class="nav-link">Admin</a></li>
-                {% endif %}
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="{% url 'hms:home' %}" class="font-bold text-xl tracking-tight flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                        </path>
+                    </svg>
+                    <span>HMS</span>
+                </a>
 
-                <li style="margin-left: 1rem; color: var(--text-muted);">|</li>
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-6">
+                    {% if user.is_authenticated %}
+                    {% if user.student_profile.is_warden or user.is_staff %}
+                    <a href="{% url 'hms:admin_dashboard' %}" class="hover:text-indigo-200 transition">Kitchen/Admin</a>
+                    {% endif %}
+                    <a href="{% url 'hms:student_dashboard' %}" class="hover:text-indigo-200 transition">Dashboard</a>
+                    <a href="{% url 'hms:student_profile' %}" class="hover:text-indigo-200 transition">Profile</a>
+                    <form action="{% url 'hms:logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded shadow transition">Logout</button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'hms:login' %}" class="hover:text-indigo-200 transition">Login</a>
+                    <a href="{% url 'hms:register' %}"
+                        class="bg-white text-indigo-600 px-4 py-2 rounded font-medium hover:bg-indigo-50 transition shadow">Register</a>
+                    {% endif %}
+                </div>
 
-                <li>
-                    <a href="{% url 'hms:student_profile' %}"
-                        style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
-                        {% if user.student_profile.profile_picture %}
-                        <img src="{{ user.student_profile.profile_picture.url }}" alt="Profile"
-                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--glass-border);">
-                        {% else %}
-                        <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=6366f1&color=fff&size=32"
-                            alt="Profile"
-                            style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--glass-border);">
-                        {% endif %}
-                        <span style="font-weight: 600; color: var(--text-primary);">
-                            {{ user.first_name|default:user.username }}
-                        </span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'hms:logout' %}" class="btn btn-secondary"
-                        style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                        Logout
-                    </a>
-                </li>
-            </ul>
+                <!-- Mobile menu button -->
+                <button class="md:hidden p-2 rounded hover:bg-indigo-700 focus:outline-none"
+                    onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-indigo-700 pb-4 px-4">
+            {% if user.is_authenticated %}
+            <a href="{% url 'hms:student_dashboard' %}"
+                class="block py-2 hover:bg-indigo-600 rounded mt-2">Dashboard</a>
+            <a href="{% url 'hms:student_profile' %}" class="block py-2 hover:bg-indigo-600 rounded mt-1">Profile</a>
+            <form action="{% url 'hms:logout' %}" method="post" class="mt-2">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-left py-2 hover:bg-indigo-600 rounded">Logout</button>
+            </form>
+            {% else %}
+            <a href="{% url 'hms:login' %}" class="block py-2 hover:bg-indigo-600 rounded mt-2">Login</a>
+            <a href="{% url 'hms:register' %}"
+                class="block py-2 bg-white text-indigo-700 text-center rounded mt-2 font-bold">Register</a>
+            {% endif %}
         </div>
     </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mx-auto px-4 max-w-5xl mt-6">
+        {% for message in messages %}
+        <div
+            class="p-4 rounded shadow-sm mb-2 {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% elif message.tags == 'success' %}bg-green-100 text-green-700 border-l-4 border-green-500{% else %}bg-blue-100 text-blue-700 border-l-4 border-blue-500{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
-    <div class="container">
-        {% if messages %}
-        <div class="messages-container" style="margin-top: 1rem;">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 max-w-5xl py-8">
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <script src="{% static 'js/main.js' %}?v=5.0"></script>
-    {% block extra_js %}{% endblock %}
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-8 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; {% now "Y" %} Hostel Management System. All rights reserved.</p>
+        </div>
+    </footer>
+
 </body>
 
 </html>

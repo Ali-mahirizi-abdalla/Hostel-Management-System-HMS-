@@ -1,66 +1,86 @@
 {% extends 'hms/base.html' %}
 
-{% block title %}Admin Dashboard - HMS{% endblock %}
+{% block title %}Kitchen Dashboard - HMS{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Admin Dashboard 🛠️</h1>
-    <p class="page-subtitle">Manage system settings and view statistics</p>
-</div>
-
-<div class="grid grid-4 mb-4">
-    <div class="stat-card">
-        <div class="stat-value">{{ total_students }}</div>
-        <div class="stat-label">Total Students</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ students_away }}</div>
-        <div class="stat-label">Students Away</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ active_announcements }}</div>
-        <div class="stat-label">Active Announcements</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ activities_count }}</div>
-        <div class="stat-label">Weekly Activities</div>
-    </div>
-</div>
-
-<div class="grid grid-2">
-    <div class="glass-card">
-        <div class="card-header">
-            <h3 class="card-title">Quick Actions</h3>
+<div class="space-y-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Kitchen Dashboard</h1>
+            <p class="text-gray-500">Daily meal statistics overview</p>
         </div>
-        <div class="card-body">
-            <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-                <a href="{% url 'hms:manage_students' %}" class="btn btn-primary">👥 Manage Students</a>
-                <a href="{% url 'hms:manage_activities' %}" class="btn btn-primary">📅 Manage Activities</a>
-                <a href="{% url 'hms:manage_announcements' %}" class="btn btn-primary">📢 Manage Announcements</a>
-                <a href="/admin/" class="btn btn-secondary">⚙️ Django Admin</a>
+        <div>
+            <a href="{% url 'hms:export_meals_csv' %}?date={{ today|date:'Y-m-d' }}"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                Export Today's CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Today's Stats -->
+    <div>
+        <h2 class="text-xl font-bold text-gray-700 mb-4 flex items-center">
+            <span class="bg-indigo-600 w-2 h-6 rounded mr-2"></span>
+            Today ({{ today|date:"l, M d" }})
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <!-- Total Students -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div class="text-gray-500 text-sm uppercase font-bold tracking-wide">Total Users</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ total_students }}</div>
+            </div>
+
+            <!-- Breakfast -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-orange-100 bg-orange-50/50">
+                <div class="text-orange-600 text-sm uppercase font-bold tracking-wide">Breakfast</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.breakfast }}</div>
+            </div>
+
+            <!-- Early -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-pink-100 bg-pink-50/50">
+                <div class="text-pink-600 text-sm uppercase font-bold tracking-wide">Early Requests</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.early }}</div>
+            </div>
+
+            <!-- Supper -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-blue-100 bg-blue-50/50">
+                <div class="text-blue-600 text-sm uppercase font-bold tracking-wide">Supper</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.supper }}</div>
+            </div>
+
+            <!-- Away -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div class="text-gray-500 text-sm uppercase font-bold tracking-wide">Marked Away</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.away }}</div>
             </div>
         </div>
     </div>
 
-    <div class="glass-card">
-        <div class="card-header">
-            <h3 class="card-title">Recent Announcements</h3>
-        </div>
-        <div class="card-body">
-            {% if recent_announcements %}
-            {% for announcement in recent_announcements %}
-            <div
-                style="padding: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-sm);">
-                <div style="font-weight: 600;">{{ announcement.title }}</div>
-                <div style="color: var(--text-muted); font-size: 0.85rem;">{{ announcement.created_at|date:"M d, g:i A"
-                    }}</div>
+    <!-- Tomorrow's Stats (Preview) -->
+    <div class="opacity-75">
+        <h2 class="text-lg font-bold text-gray-600 mb-4 flex items-center">
+            <span class="bg-gray-400 w-2 h-6 rounded mr-2"></span>
+            Tomorrow Preview ({{ tomorrow|date:"M d" }})
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-dashed border-gray-200">
+                <div class="text-xs text-gray-400 uppercase">Breakfast</div>
+                <div class="text-xl font-bold text-gray-600">{{ tomorrow_stats.breakfast }}</div>
             </div>
-            {% endfor %}
-            {% else %}
-            <p class="text-muted text-center">No announcements yet</p>
-            {% endif %}
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-dashed border-gray-200">
+                <div class="text-xs text-gray-400 uppercase">Early</div>
+                <div class="text-xl font-bold text-gray-600">{{ tomorrow_stats.early }}</div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-dashed border-gray-200">
+                <div class="text-xs text-gray-400 uppercase">Supper</div>
+                <div class="text-xl font-bold text-gray-600">{{ tomorrow_stats.supper }}</div>
+            </div>
         </div>
     </div>
 </div>
-
 {% endblock %}

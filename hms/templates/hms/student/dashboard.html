@@ -1,429 +1,232 @@
 {% extends 'hms/base.html' %}
-{% load static %}
 
-{% block title %}Dashboard - Hostel Meal System{% endblock %}
+{% block title %}Dashboard - HMS{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Welcome back, {{ student.user.first_name }}! 👋</h1>
-    <p class="page-subtitle">Manage your meals and view today's menu</p>
-</div>
-
-<div class="grid grid-3" style="grid-template-columns: 2fr 1fr;">
-    <!-- Main Content -->
-    <div style="display: flex; flex-direction: column; gap: 2rem;">
-
-        <!-- Meal Confirmation Card -->
-        <div class="glass-card" data-tilt>
-            <div class="card-header flex-between">
-                <h3 class="card-title">Confirm Meals for {{ tomorrow|date:"l, F d" }}</h3>
-                <span class="badge badge-primary">Active</span>
-            </div>
-
-            <form method="post" action="{% url 'hms:confirm_meals' %}" id="meal-form">
-                {% csrf_token %}
-                <input type="hidden" name="date" value="{{ tomorrow|date:'Y-m-d' }}">
-
-                <div class="grid grid-3" style="gap: 1rem; margin-bottom: 2rem;">
-                    <!-- Breakfast Option -->
-                    <div class="meal-option">
-                        <input type="checkbox" id="breakfast" name="breakfast" class="meal-checkbox" {% if
-                            tomorrow_meals.breakfast %}checked{% endif %}>
-                        <label for="breakfast" class="meal-label">
-                            <span class="meal-icon">☕</span>
-                            <span>Breakfast</span>
-                            <small class="text-muted" style="display: block; font-size: 0.8rem;">7:00 - 9:00 AM</small>
-                        </label>
-                    </div>
-
-                    <!-- Lunch Option -->
-                    <div class="meal-option">
-                        <input type="checkbox" id="lunch" name="lunch" class="meal-checkbox" {% if tomorrow_meals.lunch
-                            %}checked{% endif %}>
-                        <label for="lunch" class="meal-label">
-                            <span class="meal-icon">🍛</span>
-                            <span>Lunch</span>
-                            <small class="text-muted" style="display: block; font-size: 0.8rem;">12:00 - 2:00 PM</small>
-                        </label>
-                    </div>
-
-                    <!-- Supper Option -->
-                    <div class="meal-option">
-                        <input type="checkbox" id="supper" name="supper" class="meal-checkbox" {% if
-                            tomorrow_meals.supper %}checked{% endif %}>
-                        <label for="supper" class="meal-label">
-                            <span class="meal-icon">🌙</span>
-                            <span>Supper</span>
-                            <small class="text-muted" style="display: block; font-size: 0.8rem;">6:00 - 8:00 PM</small>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-group"
-                    style="margin-bottom: 2rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md);">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="early_breakfast" name="early_breakfast" {%
-                            if tomorrow_meals.early_breakfast_needed %}checked{% endif %}>
-                        <label class="form-check-label" for="early_breakfast">
-                            Request Early Breakfast (Before 7:00 AM)
-                        </label>
-                    </div>
-                    <small class="text-muted" style="margin-left: 1.8rem; display: block; margin-top: 0.5rem;">
-                        Select this if you have early classes or exams.
-                    </small>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block">
-                    Save Meal Preferences
-                </button>
-            </form>
+<div class="space-y-8">
+    <!-- Welcome Header -->
+    <div class="flex flex-col md:flex-row justify-between items-end">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Hello, {{ student.user.first_name }}!</h1>
+            <p class="text-gray-500">Plan your meals for today and tomorrow.</p>
         </div>
-
-        <!-- Today's Status -->
-        <div class="glass-card">
-            <div class="card-header">
-                <h3 class="card-title">Today's Meals ({{ today|date:"l, F d" }})</h3>
-            </div>
-            <div class="grid grid-3" style="text-align: center;">
-                <div class="status-item">
-                    <div class="text-muted mb-2">Breakfast</div>
-                    {% if today_meals.breakfast %}
-                    <span class="badge badge-success">Confirmed</span>
-                    {% if today_meals.early_breakfast_needed %}
-                    <div style="margin-top: 0.5rem;"><small class="text-warning">Early</small></div>
-                    {% endif %}
-                    {% else %}
-                    <span class="badge badge-secondary">Not Booked</span>
-                    {% endif %}
-                </div>
-                <div class="status-item">
-                    <div class="text-muted mb-2">Lunch</div>
-                    {% if today_meals.lunch %}
-                    <span class="badge badge-success">Confirmed</span>
-                    {% else %}
-                    <span class="badge badge-secondary">Not Booked</span>
-                    {% endif %}
-                </div>
-                <div class="status-item">
-                    <div class="text-muted mb-2">Supper</div>
-                    {% if today_meals.supper %}
-                    <span class="badge badge-success">Confirmed</span>
-                    {% else %}
-                    <span class="badge badge-secondary">Not Booked</span>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="mt-4 md:mt-0 flex flex-col items-end gap-2">
+            <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
+                {{ today|date:"l, d M Y" }}
+            </span>
+            <a href="https://student.pu.ac.ke/Account/Login?ReturnUrl=%2fFinance%2fPesaflowPayment" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-800 underline">
+                University Portal
+            </a>
         </div>
     </div>
 
-    <!-- Sidebar -->
-    <div style="display: flex; flex-direction: column; gap: 2rem;">
-        <!-- Profile Summary -->
-        <div class="glass-card text-center" data-tilt>
-            <div style="position: relative; display: inline-block; margin-bottom: 1rem;">
-                {% if student.profile_picture %}
-                <img src="{{ student.profile_picture.url }}" alt="Profile"
-                    style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--glass-border);">
-                {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=6366f1&color=fff"
-                    alt="Profile"
-                    style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--glass-border);">
+    {% if is_away_today %}
+    <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 rounded shadow-sm">
+        <p class="font-bold">You are currently marked as AWAY.</p>
+        <p>Meal selection is disabled. Update Away Mode settings to resume meals.</p>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Today's Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+            <div class="bg-indigo-600 p-4 flex justify-between items-center text-white">
+                <h2 class="font-bold text-lg">Today</h2>
+                <span class="text-sm opacity-90">{{ today|date:"M d" }}</span>
+            </div>
+
+            <div class="p-6">
+                {% if is_locked %}
+                <div class="mb-4 bg-amber-50 text-amber-800 text-xs p-2 rounded flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
+                    Breakfast selection is locked (past 08:00 AM)
+                </div>
                 {% endif %}
-                <span
-                    style="position: absolute; bottom: 5px; right: 5px; width: 15px; height: 15px; background: var(--success); border-radius: 50%; border: 2px solid #1e293b;"></span>
-            </div>
-            <h4 style="margin-bottom: 0.5rem;">{{ user.get_full_name|default:user.username }}</h4>
-            <p class="text-muted" style="font-size: 0.9rem;">Room {{ student.room_number }}</p>
-            <a href="{% url 'hms:student_profile' %}" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">View
-                Profile</a>
-        </div>
 
-        <!-- Announcements -->
-        <div class="glass-card">
-            <div class="card-header">
-                <h3 class="card-title">Announcements</h3>
-            </div>
-            {% if announcements %}
-            <div class="announcement-list">
-                {% for announcement in announcements %}
-                <div class="announcement-item" style="padding: 1rem; border-bottom: 1px solid var(--glass-border);">
-                    <h5 style="margin-bottom: 0.5rem; color: var(--primary-light);">{{ announcement.title }}</h5>
-                    <p class="text-muted" style="font-size: 0.9rem;">{{ announcement.content|truncatechars:100 }}</p>
-                    <small class="text-muted" style="display: block; margin-top: 0.5rem;">{{
-                        announcement.created_at|timesince }} ago</small>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="text-muted text-center">No new announcements.</p>
-            {% endif %}
-        </div>
+                <form action="{% url 'hms:confirm_meals' %}" method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
 
-        <!-- Activities -->
-        <div class="glass-card">
-            <div class="card-header">
-                <h3 class="card-title">Today's Activities</h3>
-            </div>
-            {% if today_activities %}
-            <div class="activity-list">
-                {% for activity in today_activities %}
-                <div class="activity-item"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
-                    <div>
-                        <h6 style="margin-bottom: 0.2rem;">{{ activity.name }}</h6>
-                        <small class="text-muted">{{ activity.get_day_display }}</small>
+                    <!-- Breakfast -->
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <span
+                                class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                                🍳
+                            </span>
+                            <div>
+                                <h3 class="font-medium text-gray-900">Breakfast</h3>
+                                <p class="text-xs text-gray-500">Served 7:00 - 9:00 AM</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="breakfast" class="sr-only peer" {% if meal_today.breakfast %}checked{% endif %} {% if is_locked or is_away_today %}disabled{% endif %}>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_locked or is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
+                            </div>
+                        </label>
                     </div>
-                    <small class="text-primary" style="font-weight: 500;">
-                        {{ activity.start_time|time:"g:i A" }}
-                    </small>
-                </div>
-                {% endfor %}
+
+                    <!-- Early Breakfast Option -->
+                    <div class="flex items-center justify-between p-2 pl-14 -mt-2">
+                        <span class="text-xs text-gray-500">Need early breakfast? (Before 7am)</span>
+                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {% if meal_today.early %}checked{% endif %} {% if is_locked or is_away_today %}disabled{% endif %}>
+                    </div>
+
+                    <!-- Supper -->
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <span
+                                class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                🥣
+                            </span>
+                            <div>
+                                <h3 class="font-medium text-gray-900">Supper</h3>
+                                <p class="text-xs text-gray-500">Served 6:00 - 8:00 PM</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="supper" class="sr-only peer" {% if meal_today.supper %}checked{% endif %} {% if is_away_today %}disabled{% endif %}>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" {% if is_away_today %}disabled{% endif %}
+                            class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition shadow {% if is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
+                            Update Today
+                        </button>
+                    </div>
+                </form>
             </div>
-            {% else %}
-            <p class="text-muted text-center">No upcoming activities.</p>
-            {% endif %}
+        </div>
+
+        <!-- Tomorrow's Card -->
+        <div
+            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative opacity-90 hover:opacity-100 transition">
+            <div class="bg-gray-800 p-4 flex justify-between items-center text-white">
+                <h2 class="font-bold text-lg">Tomorrow</h2>
+                <span class="text-sm opacity-70">{{ tomorrow|date:"M d" }}</span>
+            </div>
+
+            <div class="p-6">
+                <!-- Similar form for tomorrow, but no lock -->
+                <form action="{% url 'hms:confirm_meals' %}" method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" value="{{ tomorrow|date:'Y-m-d' }}">
+
+                    <!-- Breakfast -->
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <span
+                                class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-400 mr-3">
+                                🍳
+                            </span>
+                            <div>
+                                <h3 class="font-medium text-gray-900">Breakfast</h3>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="breakfast" class="sr-only peer" {% if meal_tomorrow.breakfast %}checked{% endif %} {% if is_away_tomorrow %}disabled{% endif %}>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Early Breakfast Option -->
+                    <div class="flex items-center justify-between p-2 pl-14 -mt-2">
+                        <span class="text-xs text-gray-500">Need early breakfast?</span>
+                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {% if meal_tomorrow.early %}checked{% endif %} {% if is_away_tomorrow %}disabled{% endif %}>
+                    </div>
+
+                    <!-- Supper -->
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <span
+                                class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-400 mr-3">
+                                🥣
+                            </span>
+                            <div>
+                                <h3 class="font-medium text-gray-900">Supper</h3>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="supper" class="sr-only peer" {% if meal_tomorrow.supper %}checked{% endif %} {% if is_away_tomorrow %}disabled{% endif %}>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" {% if is_away_tomorrow %}disabled{% endif %}
+                            class="w-full bg-gray-800 text-white font-bold py-2 px-4 rounded hover:bg-gray-900 transition shadow {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
+                            Update Tomorrow
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Away Mode Button -->
+    <div
+        class="bg-indigo-50 border border-indigo-100 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between">
+        <div class="mb-4 md:mb-0">
+            <h3 class="font-bold text-indigo-900">Going Away?</h3>
+            <p class="text-sm text-indigo-700">Mark yourself as away to automatically cancel meals for a specific
+                period.</p>
+        </div>
+        <button onclick="document.getElementById('away-mode-modal').classList.remove('hidden')"
+            class="bg-white text-indigo-600 border border-indigo-200 font-bold py-2 px-6 rounded hover:bg-white hover:shadow transition">
+            Set Away Mode
+        </button>
+    </div>
+
+</div>
+
+<!-- Away Mode Modal -->
+<div id="away-mode-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Set Away Period</h3>
+            <div class="mt-2 text-left">
+                <form action="{% url 'hms:toggle_away' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="start_date">
+                            From Date
+                        </label>
+                        {{ away_form.start_date }}
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="end_date">
+                            To Date
+                        </label>
+                        {{ away_form.end_date }}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button type="button" onclick="document.getElementById('away-mode-modal').classList.add('hidden')"
+                            class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            Confirm
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-
-<!-- Campus Life Gallery - Enhanced with Premium Containers -->
-<div class="glass-card" style="margin-top: 2rem;" data-tilt>
-    <div class="card-header">
-        <h3 class="card-title">✨ Campus Life Gallery</h3>
-        <p class="text-muted" style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Explore our world-class facilities</p>
-    </div>
-    <div class="grid grid-3" style="gap: 1.5rem;">
-        <!-- Hostel Exterior -->
-        <div class="gallery-item" style="animation-delay: 0s;">
-            <div class="gallery-container">
-                <img src="{% static 'img/hostel.png' %}" alt="Hostel Exterior" class="gallery-image">
-                <div class="gallery-overlay">
-                    <div class="gallery-content">
-                        <span class="gallery-icon">🏢</span>
-                        <h5 class="gallery-title">Modern Living</h5>
-                        <p class="gallery-description">Contemporary architecture & design</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Kitchen -->
-        <div class="gallery-item" style="animation-delay: 0.1s;">
-            <div class="gallery-container">
-                <img src="{% static 'img/kitchen.png' %}" alt="Modern Kitchen" class="gallery-image">
-                <div class="gallery-overlay">
-                    <div class="gallery-content">
-                        <span class="gallery-icon">👨‍🍳</span>
-                        <h5 class="gallery-title">World-Class Kitchen</h5>
-                        <p class="gallery-description">Professional culinary facilities</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Meals -->
-        <div class="gallery-item" style="animation-delay: 0.2s;">
-            <div class="gallery-container">
-                <img src="{% static 'img/meals.png' %}" alt="Delicious Meals" class="gallery-image">
-                <div class="gallery-overlay">
-                    <div class="gallery-content">
-                        <span class="gallery-icon">🍽️</span>
-                        <h5 class="gallery-title">Healthy Dining</h5>
-                        <p class="gallery-description">Nutritious & delicious meals</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Student Room -->
-        <div class="gallery-item" style="animation-delay: 0.3s;">
-            <div class="gallery-container">
-                <img src="{% static 'img/room.png' %}" alt="Student Room" class="gallery-image">
-                <div class="gallery-overlay">
-                    <div class="gallery-content">
-                        <span class="gallery-icon">🛋️</span>
-                        <h5 class="gallery-title">Private Spaces</h5>
-                        <p class="gallery-description">Comfortable personal areas</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dining Hall -->
-        <div class="gallery-item" style="animation-delay: 0.4s;">
-            <div class="gallery-container">
-                <img src="{% static 'img/dining.png' %}" alt="Dining Hall" class="gallery-image">
-                <div class="gallery-overlay">
-                    <div class="gallery-content">
-                        <span class="gallery-icon">🍴</span>
-                        <h5 class="gallery-title">Spacious Dining</h5>
-                        <p class="gallery-description">Modern communal dining area</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Gallery Animation Keyframes */
-    @keyframes galleryFadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(30px) scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    @keyframes borderGlow {
-
-        0%,
-        100% {
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-
-        50% {
-            box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
-        }
-    }
-
-    /* Gallery Item Container */
-    .gallery-item {
-        animation: galleryFadeIn 0.6s ease-out forwards;
-        opacity: 0;
-    }
-
-    .gallery-container {
-        position: relative;
-        overflow: hidden;
-        border-radius: 16px;
-        height: 280px;
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(10px);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-    }
-
-    /* Glassmorphism & 3D Transform on Hover */
-    .gallery-container:hover {
-        transform: translateY(-12px) scale(1.02);
-        box-shadow:
-            0 20px 40px rgba(0, 0, 0, 0.4),
-            0 0 0 3px rgba(99, 102, 241, 0.3),
-            0 0 40px rgba(99, 102, 241, 0.2);
-        border-color: rgba(99, 102, 241, 0.5);
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    /* Image Styling */
-    .gallery-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        filter: brightness(0.9);
-    }
-
-    .gallery-container:hover .gallery-image {
-        transform: scale(1.15);
-        filter: brightness(1.1);
-    }
-
-    /* Gradient Overlay */
-    .gallery-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(to top,
-                rgba(0, 0, 0, 0.85) 0%,
-                rgba(0, 0, 0, 0.4) 50%,
-                transparent 100%);
-        transition: background 0.4s ease;
-        display: flex;
-        align-items: flex-end;
-        padding: 1.5rem;
-    }
-
-    .gallery-container:hover .gallery-overlay {
-        background: linear-gradient(to top,
-                rgba(99, 102, 241, 0.7) 0%,
-                rgba(139, 92, 246, 0.5) 50%,
-                rgba(0, 0, 0, 0.3) 100%);
-    }
-
-    /* Content Styling */
-    .gallery-content {
-        width: 100%;
-        transform: translateY(0);
-        transition: transform 0.4s ease;
-    }
-
-    .gallery-container:hover .gallery-content {
-        transform: translateY(-8px);
-    }
-
-    .gallery-icon {
-        font-size: 2.5rem;
-        display: block;
-        margin-bottom: 0.5rem;
-        opacity: 0;
-        transform: scale(0.5) translateY(20px);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .gallery-container:hover .gallery-icon {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-
-    .gallery-title {
-        color: white;
-        margin: 0 0 0.5rem 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-        transition: all 0.3s ease;
-    }
-
-    .gallery-container:hover .gallery-title {
-        transform: translateX(5px);
-        text-shadow: 2px 2px 12px rgba(99, 102, 241, 0.8);
-    }
-
-    .gallery-description {
-        color: rgba(255, 255, 255, 0.9);
-        margin: 0;
-        font-size: 0.9rem;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
-    }
-
-    .gallery-container:hover .gallery-description {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .gallery-container {
-            height: 220px;
-        }
-
-        .gallery-title {
-            font-size: 1.1rem;
-        }
-
-        .gallery-icon {
-            font-size: 2rem;
-        }
-    }
-</style>
 {% endblock %}

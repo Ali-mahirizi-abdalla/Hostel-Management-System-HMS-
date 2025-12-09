@@ -2,17 +2,17 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from allauth.socialaccount.signals import pre_social_login
-from .models import StudentProfile
+from .models import Student
 
 
 @receiver(post_save, sender=User)
 def create_student_profile(sender, instance, created, **kwargs):
-    """Create StudentProfile for new users"""
+    """Create Student profile for new users"""
     if created and not hasattr(instance, 'student_profile'):
-        StudentProfile.objects.create(
+        Student.objects.create(
             user=instance,
-            room_number='TBD',  # To be determined - user can update later
-            phone_number=''
+            university_id=None, 
+            phone=''
         )
 
 
