@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # ============================================
 SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-key-for-dev-only')
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
 
 # Render-specific host configuration
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
@@ -103,9 +103,12 @@ WSGI_APPLICATION = 'Hostel_System.wsgi.application'
 # ============================================
 # DATABASE
 # ============================================
+# ============================================
+# DATABASE
+# ============================================
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
+        default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
         conn_max_age=600
     )
 }

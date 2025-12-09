@@ -1,130 +1,86 @@
-# hms/forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from .models import StudentProfile, MealConfirmation, ActivitySchedule, Announcement
-from datetime import date  # Add this import for date handling
+from .models import Student, AwayPeriod, Activity
 
-class StudentProfileForm(forms.ModelForm):
+class StudentRegistrationForm(forms.ModelForm):
+    # User fields
+    first_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}))
+    last_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}))
+    username = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'w-full p-2 border rounded'}))
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'w-full p-2 border rounded'}))
+
+    # Student fields
+    university_id = forms.CharField(max_length=20, required=True, widget=forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}))
+    phone = forms.CharField(max_length=15, required=False, widget=forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}))
+
     class Meta:
-        model = StudentProfile
-        fields = ['room_number', 'phone_number', 'profile_picture']
-        widgets = {
-            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'room_number': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+        model = Student
+        fields = ['university_id', 'phone']
 
-class StudentRegistrationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(max_length=30, required=True)
-    last_name = forms.CharField(max_length=30, required=True)
-    room_number = forms.CharField(max_length=10, required=True)
-    phone_number = forms.CharField(max_length=15, required=True)
-    
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        
-        if commit:
-            user.save()
-            StudentProfile.objects.create(
-                user=user,
-                room_number=self.cleaned_data['room_number'],
-                phone_number=self.cleaned_data['phone_number']
-            )
-        return user
-
-class MealConfirmationForm(forms.ModelForm):
-    class Meta:
-        model = MealConfirmation
-        fields = ['breakfast', 'lunch', 'supper', 'early_breakfast_needed']
-        widgets = {
-            'breakfast': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'lunch': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'supper': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'early_breakfast_needed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
-
-# class ActivityForm(forms.ModelForm):
-#     class Meta:
-#         model = Activity
-#         fields = '__all__'
-#         widgets = {
-#             'description': forms.Textarea(attrs={'rows': 3}),
-#             'start_time': forms.TimeInput(attrs={'type': 'time'}),
-#             'end_time': forms.TimeInput(attrs={'type': 'time'}),
-#         }
-
-class AnnouncementForm(forms.ModelForm):
-    class Meta:
-        model = Announcement
-        fields = ['title', 'message', 'is_active']
-        widgets = {
-            'message': forms.Textarea(attrs={'rows': 4}),
-        }
-
-# class KitchenNoteForm(forms.ModelForm):
-#     class Meta:
-#         model = KitchenNote
-#         fields = ['title', 'content', 'is_important']
-#         widgets = {
-#             'content': forms.Textarea(attrs={'rows': 4}),
-#         }
-
-# class SpecialMealRequestForm(forms.ModelForm):
-#     class Meta:
-#         model = SpecialMealRequest
-#         fields = ['meal_type', 'date', 'notes']
-#         widgets = {
-#             'date': forms.DateInput(attrs={'type': 'date'}),
-#             'notes': forms.Textarea(attrs={'rows': 2}),
-#         }
-
-class AwayStatusForm(forms.Form):
-    is_away = forms.BooleanField(
-        label='I will be away from the hostel',
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    )
-    
-    away_from_date = forms.DateField(
-        label='From',
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
-    )
-    
-    away_to_date = forms.DateField(
-        label='To',
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
-    )
-    
-    reason = forms.CharField(
-        label='Reason (optional)',
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
-    )
-    
     def clean(self):
         cleaned_data = super().clean()
-        is_away = cleaned_data.get('is_away')
-        away_from_date = cleaned_data.get('away_from_date')
-        away_to_date = cleaned_data.get('away_to_date')
-        
-        if is_away:
-            if not away_from_date or not away_to_date:
-                raise forms.ValidationError('Please provide both start and end dates for your away period.')
-            
-            if away_from_date < date.today():
-                raise forms.ValidationError('Start date cannot be in the past.')
-                
-            if away_to_date < away_from_date:
-                raise forms.ValidationError('End date must be after start date.')
-        
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            raise forms.ValidationError("Passwords do not match")
         return cleaned_data
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This username is already taken.")
+        return username
+
+    def save(self, commit=True):
+        # 1. Create the User (triggers post_save signal which creates a Student profile)
+        user = User.objects.create_user(
+            username=self.cleaned_data['username'],
+            email=self.cleaned_data['email'],
+            password=self.cleaned_data['password'],
+            first_name=self.cleaned_data['first_name'],
+            last_name=self.cleaned_data['last_name']
+        )
+        
+        # 2. Get the auto-created student profile
+        # The signal in hms/signals.py guarantees this exists for new users
+        student = user.student_profile
+        
+        # 3. Update it with form data
+        student.university_id = self.cleaned_data['university_id']
+        student.phone = self.cleaned_data['phone']
+        
+        if commit:
+            student.save()
+            
+        return student
+
+class AwayModeForm(forms.ModelForm):
+    start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'w-full p-2 border rounded'}))
+    end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'w-full p-2 border rounded'}))
+
+    class Meta:
+        model = AwayPeriod
+        fields = ['start_date', 'end_date']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('start_date')
+        end = cleaned_data.get('end_date')
+        if start and end and start > end:
+            raise forms.ValidationError("End date must be after start date.")
+        return cleaned_data
+
+class ActivityForm(forms.ModelForm):
+    class Meta:
+        model = Activity
+        fields = ['display_name', 'weekday', 'time', 'description', 'active']
+        widgets = {
+            'display_name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'weekday': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
+            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'w-full p-2 border rounded'}),
+            'description': forms.Textarea(attrs={'class': 'w-full p-2 border rounded', 'rows': 3}),
+            'active': forms.CheckboxInput(attrs={'class': 'p-2'}),
+        }
