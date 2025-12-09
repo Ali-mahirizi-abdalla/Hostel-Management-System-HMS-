@@ -6,4 +6,8 @@ class HmsConfig(AppConfig):
     name = 'hms'
 
     def ready(self):
-        import hms.signals  # noqa
+        # Import your signals when the app is ready
+        try:
+            import hms.signals
+        except ImportError:
+            pass
