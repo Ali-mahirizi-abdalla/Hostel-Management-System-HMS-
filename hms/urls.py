@@ -6,8 +6,9 @@ app_name = 'hms'
 
 urlpatterns = [
     # Authentication
-    path('', views.home, name='home'),
+    path('', views.student_dashboard, name='home'),
     path('register/', views.register_student, name='register'),
+
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     

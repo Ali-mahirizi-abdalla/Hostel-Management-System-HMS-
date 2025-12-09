@@ -18,7 +18,7 @@ RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 ALLOWED_HOSTS = []
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-ALLOWED_HOSTS += ['.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS += ['.onrender.com', '.herokuapp.com', 'localhost', '127.0.0.1']
 
 # CSRF protection
 CSRF_TRUSTED_ORIGINS = []

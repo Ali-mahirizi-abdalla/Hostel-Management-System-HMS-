@@ -16,29 +16,16 @@ def register_student(request):
     """Register a new student"""
     if request.user.is_authenticated:
         return redirect('hms:home')
-        
     if request.method == 'POST':
         form = StudentRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             messages.success(request, 'Registration successful! Welcome to the hostel.')
-            return redirect('hms:student_dashboard')
-        else:
-            print("REGISTRATION ERRORS:", form.errors)
+            return redirect('hms:student_profile')
     else:
         form = StudentRegistrationForm()
-    
     return render(request, 'hms/registration/register.html', {'form': form})
-
-def home(request):
-    """Home page - redirect based on user role"""
-    if request.user.is_authenticated:
-        if hasattr(request.user, 'student_profile'):
-            return redirect('hms:student_dashboard')
-        elif request.user.is_staff:
-            return redirect('hms:kitchen_dashboard')
-    return redirect('hms:login')
 
 
 def user_login(request):
