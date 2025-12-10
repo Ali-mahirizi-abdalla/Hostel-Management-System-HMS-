@@ -72,7 +72,7 @@
     --glow-primary: 0 0 20px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.15);
     --glow-secondary: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.15);
 
-    --overlay-opacity: 0.1;
+    --overlay-opacity: 0.9;
     --input-bg: rgba(255, 255, 255, 0.8);
     --navbar-bg: rgba(255, 255, 255, 0.9);
 }
@@ -90,7 +90,7 @@ body {
     background-image:
         linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
         linear-gradient(225deg, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-        url('../img/hostel.png');
+        url('../img/hostel_bg.png');
     background-size: cover, cover, cover;
     background-position: center;
     background-attachment: fixed;
@@ -853,6 +853,114 @@ a:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+/* ====================/* Main CSS - Enhanced & Responsive */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll on mobile */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(79, 70, 229, 0.4);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 70, 229, 0.6);
+}
+
+/* Card Hover Effects */
+.card-hoverable {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hoverable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    h1 {
+        font-size: 1.75rem !important;
+    }
+
+    .glass-panel {
+        backdrop-filter: blur(12px);
+    }
+}
+
+/* Image Upload Preview Container */
+.image-preview-container {
+    position: relative;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 9999px;
+    overflow: hidden;
+    background-color: #f3f4f6;
+    border: 4px solid white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Form Styles */
+.form-input-glass {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(209, 213, 219, 0.5) !important;
+    transition: all 0.2s;
+}
+
+.form-input-glass:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px var(--primary-dark);
+}
+
+/* Animations */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-enter {
+    animation: fadeInScale 0.4s ease-out forwards;
 }
 
 /* ==================== Navbar ==================== */

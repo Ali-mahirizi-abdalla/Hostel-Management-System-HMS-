@@ -6,7 +6,7 @@ from django.utils import timezone
 from .models import Student, Meal, Activity, AwayPeriod
 from .forms import StudentRegistrationForm, AwayModeForm
 from datetime import date, datetime, time, timedelta
-from django.db import transaction
+from django.db import transaction, models
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponse, HttpResponseForbidden
 
@@ -117,6 +117,15 @@ def student_dashboard(request):
         'is_away_today': is_away_today,
         'is_away_tomorrow': is_away_tomorrow,
         'away_form': away_form,
+        # Pre-calculated attributes for template to avoid formatter breaking split tags
+        'today_breakfast_attr': 'checked' if meal_today.breakfast else '',
+        'today_early_attr': 'checked' if meal_today.early else '',
+        'today_supper_attr': 'checked' if meal_today.supper else '',
+        'today_disabled_attr': 'disabled' if (is_locked or is_away_today) else '',
+        'tomorrow_breakfast_attr': 'checked' if meal_tomorrow.breakfast else '',
+        'tomorrow_early_attr': 'checked' if meal_tomorrow.early else '',
+        'tomorrow_supper_attr': 'checked' if meal_tomorrow.supper else '',
+        'tomorrow_disabled_attr': 'disabled' if is_away_tomorrow else '',
     }
     return render(request, 'hms/student/dashboard.html', context)
 
@@ -275,6 +284,72 @@ def dashboard_admin(request):
         'today_activity': today_activity,
         'activities': activities
     }
+
+    # ==================== ADVANCED DASHBOARD LOGIC ====================
+    
+    # 1. Search & Filtering
+    search_query = request.GET.get('q', '')
+    filter_date_str = request.GET.get('date', str(today))
+    
+    try:
+        filter_date = datetime.strptime(filter_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        filter_date = today
+
+    # Base Queryset for Today's Meals (or filtered date)
+    meals_query = Meal.objects.filter(date=filter_date).select_related('student__user')
+    
+    if search_query:
+        meals_query = meals_query.filter(
+            models.Q(student__user__first_name__icontains=search_query) | 
+            models.Q(student__user__last_name__icontains=search_query) |
+            models.Q(student__university_id__icontains=search_query)
+        )
+
+    # 2. Daily Lists
+    present_list = meals_query.filter(away=False)
+    # Students who have explicitly set 'away' to True for this date
+    away_list_consult = meals_query.filter(away=True)
+    
+    # 3. Notifications / "Unconfirmed" 
+    # Logic: Students who have a profile but NO meal record for tomorrow
+    # This might differ based on business logic, here assuming "No Record" = Unconfirmed
+    all_student_ids = Student.objects.values_list('id', flat=True)
+    confirmed_student_ids_tomorrow = Meal.objects.filter(date=tomorrow).values_list('student_id', flat=True)
+    unconfirmed_count = len(all_student_ids) - len(confirmed_student_ids_tomorrow)
+
+    # 4. Chart Data: Weekly Trends (Last 7 Days)
+    week_start = today - timedelta(days=6)
+    weekly_labels = []
+    weekly_breakfast = []
+    weekly_supper = []
+    
+    for i in range(7):
+        d = week_start + timedelta(days=i)
+        weekly_labels.append(d.strftime('%a')) # Mon, Tue...
+        stats = Meal.objects.filter(date=d).aggregate(
+            b_count=models.Count('id', filter=models.Q(breakfast=True)),
+            s_count=models.Count('id', filter=models.Q(supper=True))
+        )
+        weekly_breakfast.append(stats['b_count'])
+        weekly_supper.append(stats['s_count'])
+
+    import json
+    chart_data = {
+        'weekly_labels': weekly_labels,
+        'weekly_breakfast': weekly_breakfast,
+        'weekly_supper': weekly_supper,
+    }
+
+    context.update({
+        'filter_date': filter_date,
+        'search_query': search_query,
+        'meals_list': present_list,
+        'away_list_consult': away_list_consult, # Renamed to avoid confusion with AwayPeriod
+        'unconfirmed_count': unconfirmed_count,
+        'chart_data_json': json.dumps(chart_data),
+    })
+
     return render(request, 'hms/admin/dashboard.html', context)
 
 @login_required
@@ -311,3 +386,80 @@ def export_meals_csv(request):
         ])
         
     return response
+
+@login_required
+def send_meal_notifications(request):
+    """Send email notifications about unconfirmed students"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    from django.core.mail import send_mail
+    from django.conf import settings
+    
+    tomorrow = date.today() + timedelta(days=1)
+    
+    # Get all students
+    all_students = Student.objects.all()
+    
+    # Get students who have confirmed meals for tomorrow
+    confirmed_student_ids = Meal.objects.filter(
+        date=tomorrow
+    ).values_list('student_id', flat=True)
+    
+    # Find unconfirmed students
+    unconfirmed_students = all_students.exclude(id__in=confirmed_student_ids)
+    
+    if not unconfirmed_students.exists():
+        messages.success(request, '✅ All students have confirmed their meals for tomorrow!')
+        return redirect('hms:admin_dashboard')
+    
+    # Prepare email content
+    unconfirmed_count = unconfirmed_students.count()
+    student_list = '\n'.join([
+        f"  • {student.user.get_full_name()} ({student.university_id}) - {student.user.email}"
+        for student in unconfirmed_students
+    ])
+    
+    subject = f'⚠️ Meal Confirmation Alert - {unconfirmed_count} Students Unconfirmed for {tomorrow.strftime("%B %d, %Y")}'
+    
+    message = f"""
+Hello Admin,
+
+This is an automated notification from the Hostel Management System.
+
+📅 Date: {tomorrow.strftime("%A, %B %d, %Y")}
+⚠️ Unconfirmed Students: {unconfirmed_count} out of {all_students.count()}
+
+The following students have NOT confirmed their meals for tomorrow:
+
+{student_list}
+
+Please remind these students to confirm their meal preferences before the deadline.
+
+---
+🔗 Access the admin dashboard: {request.build_absolute_uri('/kitchen/dashboard/')}
+
+This is an automated message from Hostel Management System.
+Do not reply to this email.
+    """
+    
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_EMAIL],
+            fail_silently=False,
+        )
+        
+        messages.success(
+            request, 
+            f'✅ Email notification sent successfully to {settings.ADMIN_EMAIL}! '
+            f'{unconfirmed_count} unconfirmed students for {tomorrow.strftime("%B %d")}'
+        )
+        
+    except Exception as e:
+        messages.error(request, f'❌ Failed to send email: {str(e)}')
+    
+    return redirect('hms:admin_dashboard')

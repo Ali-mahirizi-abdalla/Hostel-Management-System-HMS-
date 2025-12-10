@@ -6,16 +6,22 @@
 <div class="space-y-8">
     <!-- Welcome Header -->
     <div class="flex flex-col md:flex-row justify-between items-end">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Hello, {{ student.user.first_name }}!</h1>
-            <p class="text-gray-500">Plan your meals for today and tomorrow.</p>
+        <div class="animate-enter">
+            <h1 class="text-3xl font-bold text-white drop-shadow-md">Hello, {{ student.user.first_name }}!</h1>
+            <p class="text-indigo-200 mt-1 text-lg">Plan your meals for today and tomorrow.</p>
         </div>
-        <div class="mt-4 md:mt-0 flex flex-col items-end gap-2">
-            <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
+        <div class="mt-4 md:mt-0 flex flex-col items-end gap-3 animate-enter" style="animation-delay: 0.1s">
+            <span
+                class="bg-indigo-600/30 text-indigo-100 border border-indigo-400/30 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-medium shadow-sm">
                 {{ today|date:"l, d M Y" }}
             </span>
-            <a href="https://student.pu.ac.ke/Account/Login?ReturnUrl=%2fFinance%2fPesaflowPayment" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-800 underline">
+            <a href="https://student.pu.ac.ke/Account/Login?ReturnUrl=%2fFinance%2fPesaflowPayment" target="_blank"
+                class="text-sm text-indigo-300 hover:text-white hover:underline transition-colors flex items-center gap-1">
                 University Portal
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
             </a>
         </div>
     </div>
@@ -27,13 +33,23 @@
     </div>
     {% endif %}
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Today's Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-            <div class="bg-indigo-600 p-4 flex justify-between items-center text-white">
-                <h2 class="font-bold text-lg">Today</h2>
-                <span class="text-sm opacity-90">{{ today|date:"M d" }}</span>
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden relative border border-gray-100 card-hoverable animate-enter"
+            style="animation-delay: 0.2s">
+            <div
+                class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-5 flex justify-between items-center text-white">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h2 class="font-bold text-xl tracking-tight">Today</h2>
+                </div>
+                <span class="text-sm font-medium bg-white/10 px-3 py-1 rounded-full">{{ today|date:"M d" }}</span>
             </div>
 
             <div class="p-6">
@@ -65,7 +81,8 @@
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="breakfast" class="sr-only peer" {% if meal_today.breakfast %}checked{% endif %} {% if is_locked or is_away_today %}disabled{% endif %}>
+                            <input type="checkbox" name="breakfast" class="sr-only peer" {{ today_breakfast_attr }} {{
+                                today_disabled_attr }}>
                             <div
                                 class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_locked or is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
                             </div>
@@ -75,7 +92,8 @@
                     <!-- Early Breakfast Option -->
                     <div class="flex items-center justify-between p-2 pl-14 -mt-2">
                         <span class="text-xs text-gray-500">Need early breakfast? (Before 7am)</span>
-                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {% if meal_today.early %}checked{% endif %} {% if is_locked or is_away_today %}disabled{% endif %}>
+                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {{
+                            today_early_attr }} {{ today_disabled_attr }}>
                     </div>
 
                     <!-- Supper -->
@@ -91,7 +109,8 @@
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="supper" class="sr-only peer" {% if meal_today.supper %}checked{% endif %} {% if is_away_today %}disabled{% endif %}>
+                            <input type="checkbox" name="supper" class="sr-only peer" {{ today_supper_attr }} {{
+                                today_disabled_attr }}>
                             <div
                                 class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
                             </div>
@@ -99,7 +118,7 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit" {% if is_away_today %}disabled{% endif %}
+                        <button type="submit" {{ today_disabled_attr }}
                             class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition shadow {% if is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
                             Update Today
                         </button>
@@ -109,11 +128,19 @@
         </div>
 
         <!-- Tomorrow's Card -->
-        <div
-            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative opacity-90 hover:opacity-100 transition">
-            <div class="bg-gray-800 p-4 flex justify-between items-center text-white">
-                <h2 class="font-bold text-lg">Tomorrow</h2>
-                <span class="text-sm opacity-70">{{ tomorrow|date:"M d" }}</span>
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden relative border border-gray-100 card-hoverable animate-enter"
+            style="animation-delay: 0.3s">
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 p-5 flex justify-between items-center text-white">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="font-bold text-xl tracking-tight">Tomorrow</h2>
+                </div>
+                <span class="text-sm font-medium bg-white/10 px-3 py-1 rounded-full">{{ tomorrow|date:"M d" }}</span>
             </div>
 
             <div class="p-6">
@@ -134,7 +161,8 @@
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="breakfast" class="sr-only peer" {% if meal_tomorrow.breakfast %}checked{% endif %} {% if is_away_tomorrow %}disabled{% endif %}>
+                            <input type="checkbox" name="breakfast" class="sr-only peer" {{ tomorrow_breakfast_attr }}
+                                {{ tomorrow_disabled_attr }}>
                             <div
                                 class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
                             </div>
@@ -144,7 +172,8 @@
                     <!-- Early Breakfast Option -->
                     <div class="flex items-center justify-between p-2 pl-14 -mt-2">
                         <span class="text-xs text-gray-500">Need early breakfast?</span>
-                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {% if meal_tomorrow.early %}checked{% endif %} {% if is_away_tomorrow %}disabled{% endif %}>
+                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {{
+                            tomorrow_early_attr }} {{ tomorrow_disabled_attr }}>
                     </div>
 
                     <!-- Supper -->
@@ -159,7 +188,8 @@
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="supper" class="sr-only peer" {% if meal_tomorrow.supper %}checked{% endif %} {% if is_away_tomorrow %}disabled{% endif %}>
+                            <input type="checkbox" name="supper" class="sr-only peer" {{ tomorrow_supper_attr }} {{
+                                tomorrow_disabled_attr }}>
                             <div
                                 class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
                             </div>
@@ -167,7 +197,7 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit" {% if is_away_tomorrow %}disabled{% endif %}
+                        <button type="submit" {{ tomorrow_disabled_attr }}
                             class="w-full bg-gray-800 text-white font-bold py-2 px-4 rounded hover:bg-gray-900 transition shadow {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
                             Update Tomorrow
                         </button>
@@ -215,7 +245,8 @@
                         {{ away_form.end_date }}
                     </div>
                     <div class="flex items-center justify-between">
-                        <button type="button" onclick="document.getElementById('away-mode-modal').classList.add('hidden')"
+                        <button type="button"
+                            onclick="document.getElementById('away-mode-modal').classList.add('hidden')"
                             class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                             Cancel
                         </button>

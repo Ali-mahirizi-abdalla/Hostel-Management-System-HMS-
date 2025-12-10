@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="flex justify-center items-center py-8">
-    <div class="w-full max-w-lg bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
-        <div class="bg-indigo-600 p-6 text-center">
+    <div class="w-full max-w-lg glass-panel rounded-xl shadow-2xl overflow-hidden border border-white/60">
+        <div class="bg-indigo-600/95 p-6 text-center backdrop-blur-sm">
             <h2 class="text-2xl font-bold text-white">Student Registration</h2>
-            <p class="text-indigo-100 mt-1">Create your account to manage meals</p>
+            <p class="text-indigo-100 mt-1 opacity-90">Create your account to manage meals</p>
         </div>
 
         <div class="p-8">
@@ -83,7 +83,8 @@
 
             <div class="mt-6 text-center text-sm text-gray-600">
                 Already have an account?
-                <a href="{% url 'hms:login' %}" class="text-indigo-600 hover:text-indigo-800 font-bold">Sign In here</a>
+                <a href="{% url 'hms:login' %}"
+                    class="text-indigo-600 hover:text-indigo-800 font-bold transition-colors">Sign In here</a>
             </div>
         </div>
     </div>

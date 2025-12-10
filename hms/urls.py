@@ -21,6 +21,7 @@ urlpatterns = [
     # Kitchen / Admin
     path('kitchen/dashboard/', views.dashboard_admin, name='admin_dashboard'),
     path('kitchen/export-csv/', views.export_meals_csv, name='export_meals_csv'),
+    path('kitchen/send-notifications/', views.send_meal_notifications, name='send_notifications'),
     
     # Password Reset
     # Explicitly defining these to ensure they are available

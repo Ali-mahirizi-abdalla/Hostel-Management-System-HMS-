@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # ============================================
 SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-key-for-dev-only')
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
 # Render-specific host configuration
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
@@ -184,14 +184,18 @@ SOCIALACCOUNT_PROVIDERS = {
 # ============================================
 # EMAIL CONFIGURATION
 # ============================================
+# Admin email for notifications
+ADMIN_EMAIL = 'alimahrez744@gmail.com'
+DEFAULT_FROM_EMAIL = 'Hostel Management System <noreply@hostel.com>'
+
 if DEBUG:
+    # In development, print emails to console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    # For production - you can set up real email later
+    # Production email settings (Gmail SMTP)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    # Uncomment and set these when ready:
-    # EMAIL_HOST = os.getenv('EMAIL_HOST')
-    # EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-    # EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-    # EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-    # EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'alimahrez744@gmail.com')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')  # Use App Password from Google

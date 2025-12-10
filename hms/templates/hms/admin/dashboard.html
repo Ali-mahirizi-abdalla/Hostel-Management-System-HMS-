@@ -1,86 +1,365 @@
 {% extends 'hms/base.html' %}
+{% load static %}
 
-{% block title %}Kitchen Dashboard - HMS{% endblock %}
+{% block title %}Kitchen & Admin Dashboard - HMS{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Kitchen Dashboard</h1>
-            <p class="text-gray-500">Daily meal statistics overview</p>
-        </div>
-        <div>
-            <a href="{% url 'hms:export_meals_csv' %}?date={{ today|date:'Y-m-d' }}"
-                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="flex flex-col md:flex-row min-h-screen -mt-8 -mx-4">
+    <!-- Sidebar Navigation (Desktop) -->
+    <aside
+        class="hidden md:flex flex-col w-64 glass-panel border-r border-white/10 text-white p-6 sticky top-20 h-[calc(100vh-5rem)]">
+        <h2 class="text-xl font-bold mb-8 text-indigo-300">Admin Panel</h2>
+        <nav class="space-y-4 flex-grow">
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 bg-indigo-600/20 text-indigo-300 rounded-xl border border-indigo-500/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
                     </path>
                 </svg>
-                Export Today's CSV
+                Dashboard
             </a>
-        </div>
-    </div>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-gray-300 rounded-xl transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+                Students
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-gray-300 rounded-xl transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                    </path>
+                </svg>
+                Meal Records
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-gray-300 rounded-xl transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                    </path>
+                </svg>
+                Away List
+            </a>
+        </nav>
 
-    <!-- Today's Stats -->
-    <div>
-        <h2 class="text-xl font-bold text-gray-700 mb-4 flex items-center">
-            <span class="bg-indigo-600 w-2 h-6 rounded mr-2"></span>
-            Today ({{ today|date:"l, M d" }})
-        </h2>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <!-- Total Students -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div class="text-gray-500 text-sm uppercase font-bold tracking-wide">Total Users</div>
-                <div class="text-3xl font-bold text-gray-800 mt-2">{{ total_students }}</div>
-            </div>
-
-            <!-- Breakfast -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-orange-100 bg-orange-50/50">
-                <div class="text-orange-600 text-sm uppercase font-bold tracking-wide">Breakfast</div>
-                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.breakfast }}</div>
-            </div>
-
-            <!-- Early -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-pink-100 bg-pink-50/50">
-                <div class="text-pink-600 text-sm uppercase font-bold tracking-wide">Early Requests</div>
-                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.early }}</div>
-            </div>
-
-            <!-- Supper -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-blue-100 bg-blue-50/50">
-                <div class="text-blue-600 text-sm uppercase font-bold tracking-wide">Supper</div>
-                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.supper }}</div>
-            </div>
-
-            <!-- Away -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div class="text-gray-500 text-sm uppercase font-bold tracking-wide">Marked Away</div>
-                <div class="text-3xl font-bold text-gray-800 mt-2">{{ today_stats.away }}</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tomorrow's Stats (Preview) -->
-    <div class="opacity-75">
-        <h2 class="text-lg font-bold text-gray-600 mb-4 flex items-center">
-            <span class="bg-gray-400 w-2 h-6 rounded mr-2"></span>
-            Tomorrow Preview ({{ tomorrow|date:"M d" }})
-        </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-dashed border-gray-200">
-                <div class="text-xs text-gray-400 uppercase">Breakfast</div>
-                <div class="text-xl font-bold text-gray-600">{{ tomorrow_stats.breakfast }}</div>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-dashed border-gray-200">
-                <div class="text-xs text-gray-400 uppercase">Early</div>
-                <div class="text-xl font-bold text-gray-600">{{ tomorrow_stats.early }}</div>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-dashed border-gray-200">
-                <div class="text-xs text-gray-400 uppercase">Supper</div>
-                <div class="text-xl font-bold text-gray-600">{{ tomorrow_stats.supper }}</div>
+        <!-- Notifications Mini-Panel -->
+        <div class="mt-auto pt-6 border-t border-white/10">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Notifications</h3>
+            <div class="space-y-3">
+                {% if unconfirmed_count > 0 %}
+                <div
+                    class="flex items-start gap-3 text-sm text-yellow-200 bg-yellow-900/20 p-2 rounded-lg border border-yellow-500/20">
+                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                    <span>{{ unconfirmed_count }} students haven't confirmed meals for tomorrow.</span>
+                </div>
+                {% endif %}
             </div>
         </div>
-    </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+
+        <!-- Header & Stats -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Kitchen Dashboard</h1>
+            <p class="text-gray-400">Overview for {{ filter_date|date:"l, F d, Y" }}</p>
+        </div>
+
+        <!-- Quick Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="glass-card p-6 border-l-4 border-indigo-500 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <svg class="w-24 h-24 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-gray-400 text-sm font-medium uppercase">Total Students</h3>
+                <p class="text-3xl font-bold mt-2">{{ total_students }}</p>
+            </div>
+
+            <div class="glass-card p-6 border-l-4 border-orange-500 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <svg class="w-24 h-24 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h3 class="text-gray-400 text-sm font-medium uppercase">Breakfast Today</h3>
+                <p class="text-3xl font-bold mt-2">{{ today_stats.breakfast }}</p>
+                <div class="mt-2 text-xs text-orange-300 bg-orange-900/30 px-2 py-1 rounded inline-block">
+                    +{{ today_stats.early }} Early
+                </div>
+            </div>
+
+            <div class="glass-card p-6 border-l-4 border-blue-500 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <svg class="w-24 h-24 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                        <path fill-rule="evenodd"
+                            d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h3 class="text-gray-400 text-sm font-medium uppercase">Supper Today</h3>
+                <p class="text-3xl font-bold mt-2">{{ today_stats.supper }}</p>
+            </div>
+
+            <div class="glass-card p-6 border-l-4 border-red-500 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                    <svg class="w-24 h-24 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h3 class="text-gray-400 text-sm font-medium uppercase">Away Today</h3>
+                <p class="text-3xl font-bold mt-2">{{ today_stats.away }}</p>
+            </div>
+        </div>
+
+        <!-- Charts & Filters Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Chart -->
+            <div class="lg:col-span-2 glass-card p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                    </svg>
+                    Weekly Activity Trends
+                </h3>
+                <div class="relative h-72 w-full">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Search & Actions -->
+            <div class="space-y-6">
+                <!-- Search -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold mb-4">Filter & Search</h3>
+                    <form method="get" class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Search Student</label>
+                            <input type="text" name="q" value="{{ search_query }}" placeholder="Name or ID..."
+                                class="form-input bg-gray-800 border-gray-700 text-white w-full rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Date</label>
+                            <input type="date" name="date" value="{{ filter_date|date:'Y-m-d' }}"
+                                class="form-input bg-gray-800 border-gray-700 text-white w-full rounded-lg">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-full rounded-lg">Apply Filters</button>
+                    </form>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold mb-4">Quick Actions</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="{% url 'hms:export_meals_csv' %}?date={{ filter_date|date:'Y-m-d' }}"
+                            class="btn btn-secondary text-sm rounded-lg flex flex-col items-center justify-center p-3 h-auto">
+                            <svg class="w-6 h-6 mb-1 text-green-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            Export CSV
+                        </a>
+                        <button onclick="window.print()"
+                            class="btn btn-secondary text-sm rounded-lg flex flex-col items-center justify-center p-3 h-auto">
+                            <svg class="w-6 h-6 mb-1 text-blue-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                                </path>
+                            </svg>
+                            Print List
+                        </button>
+                        <a href="{% url 'hms:send_notifications' %}"
+                            class="btn btn-primary text-sm rounded-lg flex flex-col items-center justify-center p-3 h-auto col-span-2"
+                            onclick="return confirm('Send email notification about unconfirmed students?')">
+                            <svg class="w-6 h-6 mb-1 text-yellow-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            📧 Send Email Notifications
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Present List -->
+            <div class="lg:col-span-2 glass-card overflow-hidden">
+                <div class="p-4 border-b border-white/10 flex justify-between items-center">
+                    <h3 class="text-lg font-bold">Students Present</h3>
+                    <span class="text-sm bg-green-900/40 text-green-300 px-3 py-1 rounded-full">{{ meals_list|length }}
+                        Records</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-indigo-900/20 text-indigo-300 text-sm">
+                            <tr>
+                                <th class="p-4">Student</th>
+                                <th class="p-4">Room/ID</th>
+                                <th class="p-4 text-center">Breakfast</th>
+                                <th class="p-4 text-center">Supper</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {% for meal in meals_list %}
+                            <tr class="hover:bg-white/5 transition">
+                                <td class="p-4 flex items-center gap-3">
+                                    {% if meal.student.profile_image %}
+                                    <img src="{{ meal.student.profile_image.url }}"
+                                        class="w-10 h-10 rounded-full object-cover border-2 border-indigo-500/30">
+                                    {% else %}
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                                        {{ meal.student.user.first_name|first }}{{ meal.student.user.last_name|first }}
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="font-medium text-white">{{ meal.student.user.get_full_name }}</div>
+                                        <div class="text-xs text-gray-500">{{ meal.student.phone|default:"No Phone" }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-gray-300">{{ meal.student.university_id }}</td>
+                                <td class="p-4 text-center">
+                                    {% if meal.breakfast %}
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Yes {% if meal.early %}(Early){% endif %}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-gray-500">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="p-4 text-center">
+                                    {% if meal.supper %}
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Yes
+                                    </span>
+                                    {% else %}
+                                    <span class="text-gray-500">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-gray-500">No records found for this date.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Away List -->
+            <div class="glass-card overflow-hidden h-fit">
+                <div class="p-4 border-b border-white/10 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-red-300">Away List</h3>
+                    <span class="text-sm bg-red-900/40 text-red-300 px-3 py-1 rounded-full">{{ away_list_consult|length
+                        }} Away</span>
+                </div>
+                <div class="divide-y divide-white/5 max-h-[500px] overflow-y-auto">
+                    {% for meal in away_list_consult %}
+                    <div class="p-4 flex items-center gap-3 hover:bg-white/5 transition">
+                        {% if meal.student.profile_image %}
+                        <img src="{{ meal.student.profile_image.url }}"
+                            class="w-8 h-8 rounded-full object-cover grayscale opacity-70">
+                        {% else %}
+                        <div
+                            class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 text-xs">
+                            {{ meal.student.user.first_name|first }}
+                        </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-300 truncate">{{ meal.student.user.get_full_name }}
+                            </p>
+                            <p class="text-xs text-gray-500">{{ meal.student.university_id }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-6 text-center text-gray-500 text-sm">Everyone is present!</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        const chartData = JSON.parse('{{ chart_data_json|escapejs }}');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.weekly_labels,
+                datasets: [
+                    {
+                        label: 'Breakfast',
+                        data: chartData.weekly_breakfast,
+                        borderColor: '#f97316', // Orange-500
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Supper',
+                        data: chartData.weekly_supper,
+                        borderColor: '#3b82f6', // Blue-500
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#9ca3af' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
