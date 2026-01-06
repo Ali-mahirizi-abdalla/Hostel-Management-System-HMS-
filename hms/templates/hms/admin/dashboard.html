@@ -6,12 +6,12 @@
 {% block content %}
 <div class="flex flex-col md:flex-row min-h-screen -mt-8 -mx-4">
     <!-- Sidebar Navigation (Desktop) -->
-    <aside
-        class="hidden md:flex flex-col w-64 glass-panel border-r border-white/10 text-white p-6 sticky top-20 h-[calc(100vh-5rem)]">
-        <h2 class="text-xl font-bold mb-8 text-indigo-300">Admin Panel</h2>
+    <aside class="hidden md:flex flex-col w-64 text-white p-6 sticky top-20 h-[calc(100vh-5rem)]"
+        style="background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);">
+        <h2 class="text-xl font-bold mb-8 text-white">Admin Panel</h2>
         <nav class="space-y-4 flex-grow">
             <a href="#"
-                class="flex items-center gap-3 px-4 py-3 bg-indigo-600/20 text-indigo-300 rounded-xl border border-indigo-500/30">
+                class="flex items-center gap-3 px-4 py-3 bg-white/20 text-white rounded-xl border border-white/30 shadow-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
@@ -19,7 +19,8 @@
                 </svg>
                 Dashboard
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-gray-300 rounded-xl transition">
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
@@ -27,7 +28,8 @@
                 </svg>
                 Students
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-gray-300 rounded-xl transition">
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
@@ -35,7 +37,8 @@
                 </svg>
                 Meal Records
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-gray-300 rounded-xl transition">
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
@@ -46,12 +49,12 @@
         </nav>
 
         <!-- Notifications Mini-Panel -->
-        <div class="mt-auto pt-6 border-t border-white/10">
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Notifications</h3>
+        <div class="mt-auto pt-6 border-t border-white/20">
+            <h3 class="text-xs font-bold text-white/70 uppercase tracking-wider mb-3">Notifications</h3>
             <div class="space-y-3">
                 {% if unconfirmed_count > 0 %}
                 <div
-                    class="flex items-start gap-3 text-sm text-yellow-200 bg-yellow-900/20 p-2 rounded-lg border border-yellow-500/20">
+                    class="flex items-start gap-3 text-sm text-yellow-100 bg-yellow-500/20 p-2 rounded-lg border border-yellow-400/30">
                     <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
@@ -68,63 +71,69 @@
     <main class="flex-1 p-6 md:p-8 overflow-y-auto">
 
         <!-- Header & Stats -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-2">Kitchen Dashboard</h1>
-            <p class="text-gray-400">Overview for {{ filter_date|date:"l, F d, Y" }}</p>
+        <div class="mb-8 p-8 rounded-2xl shadow-lg"
+            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+            <h1 class="text-3xl font-bold mb-2 text-white">🏠 Hostel Management</h1>
+            <p class="text-white/90 text-lg">Welcome to our Professional Hostel Booking System</p>
+            <p class="text-white/70 text-sm mt-1">Overview for {{ filter_date|date:"l, F d, Y" }}</p>
         </div>
 
         <!-- Quick Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="glass-card p-6 border-l-4 border-indigo-500 relative overflow-hidden group">
-                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                    <svg class="w-24 h-24 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+            <div class="rounded-2xl p-6 relative overflow-hidden group shadow-xl transition-transform hover:scale-105"
+                style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                <div class="absolute right-0 top-0 p-4 opacity-20">
+                    <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path
                             d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z">
                         </path>
                     </svg>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium uppercase">Total Students</h3>
-                <p class="text-3xl font-bold mt-2">{{ total_students }}</p>
+                <h3 class="text-white/80 text-sm font-bold uppercase tracking-wide">Total Students</h3>
+                <p class="text-5xl font-bold mt-2 text-white">{{ total_students }}</p>
             </div>
 
-            <div class="glass-card p-6 border-l-4 border-orange-500 relative overflow-hidden group">
-                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                    <svg class="w-24 h-24 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+            <div class="rounded-2xl p-6 relative overflow-hidden group shadow-xl transition-transform hover:scale-105"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="absolute right-0 top-0 p-4 opacity-20">
+                    <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
                             clip-rule="evenodd"></path>
                     </svg>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium uppercase">Breakfast Today</h3>
-                <p class="text-3xl font-bold mt-2">{{ today_stats.breakfast }}</p>
-                <div class="mt-2 text-xs text-orange-300 bg-orange-900/30 px-2 py-1 rounded inline-block">
+                <h3 class="text-white/80 text-sm font-bold uppercase tracking-wide">Breakfast Today</h3>
+                <p class="text-5xl font-bold mt-2 text-white">{{ today_stats.breakfast }}</p>
+                <div class="mt-2 text-xs text-white/90 bg-white/20 px-3 py-1 rounded-full inline-block font-semibold">
                     +{{ today_stats.early }} Early
                 </div>
             </div>
 
-            <div class="glass-card p-6 border-l-4 border-blue-500 relative overflow-hidden group">
-                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                    <svg class="w-24 h-24 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+            <div class="rounded-2xl p-6 relative overflow-hidden group shadow-xl transition-transform hover:scale-105"
+                style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <div class="absolute right-0 top-0 p-4 opacity-20">
+                    <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
                         <path fill-rule="evenodd"
                             d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
                             clip-rule="evenodd"></path>
                     </svg>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium uppercase">Supper Today</h3>
-                <p class="text-3xl font-bold mt-2">{{ today_stats.supper }}</p>
+                <h3 class="text-white/80 text-sm font-bold uppercase tracking-wide">Supper Today</h3>
+                <p class="text-5xl font-bold mt-2 text-white">{{ today_stats.supper }}</p>
             </div>
 
-            <div class="glass-card p-6 border-l-4 border-red-500 relative overflow-hidden group">
-                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                    <svg class="w-24 h-24 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+            <div class="rounded-2xl p-6 relative overflow-hidden group shadow-xl transition-transform hover:scale-105"
+                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <div class="absolute right-0 top-0 p-4 opacity-20">
+                    <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                             d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
                             clip-rule="evenodd"></path>
                     </svg>
                 </div>
-                <h3 class="text-gray-400 text-sm font-medium uppercase">Away Today</h3>
-                <p class="text-3xl font-bold mt-2">{{ today_stats.away }}</p>
+                <h3 class="text-white/80 text-sm font-bold uppercase tracking-wide">Away Today</h3>
+                <p class="text-5xl font-bold mt-2 text-white">{{ today_stats.away }}</p>
             </div>
         </div>
 
@@ -132,8 +141,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <!-- Chart -->
             <div class="lg:col-span-2 glass-card p-6">
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
                     </svg>

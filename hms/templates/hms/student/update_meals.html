@@ -5,96 +5,117 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Update Meal Preferences</h2>
-    
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Today's Meals ({{ today|date:"F j, Y" }})</h5>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h5 class="font-bold text-slate-800">Today's Meals ({{ today|date:"F j, Y" }})</h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                {{ form.breakfast }}
-                                <label class="form-check-label" for="{{ form.breakfast.id_for_label }}">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <label class="font-medium text-slate-700" for="{{ form.breakfast.id_for_label }}">
                                     {{ form.breakfast.label }}
                                 </label>
+                                <div
+                                    class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    {{ form.breakfast }}
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                {{ form.early_breakfast }}
-                                <label class="form-check-label" for="{{ form.early_breakfast.id_for_label }}">
-                                    {{ form.early_breakfast.label }}
-                                    <small class="text-muted">(Available 6:00 AM - 7:00 AM)</small>
-                                </label>
+
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div>
+                                    <label class="block font-medium text-slate-700"
+                                        for="{{ form.early_breakfast.id_for_label }}">
+                                        {{ form.early_breakfast.label }}
+                                    </label>
+                                    <small class="text-slate-500">(Available 6:00 AM - 7:00 AM)</small>
+                                </div>
+                                <div
+                                    class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    {{ form.early_breakfast }}
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                {{ form.lunch }}
-                                <label class="form-check-label" for="{{ form.lunch.id_for_label }}">
+
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <label class="font-medium text-slate-700" for="{{ form.lunch.id_for_label }}">
                                     {{ form.lunch.label }}
                                 </label>
+                                <div
+                                    class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    {{ form.lunch }}
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                {{ form.dinner }}
-                                <label class="form-check-label" for="{{ form.dinner.id_for_label }}">
+
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <label class="font-medium text-slate-700" for="{{ form.dinner.id_for_label }}">
                                     {{ form.dinner.label }}
                                 </label>
+                                <div
+                                    class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    {{ form.dinner }}
+                                </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit"
+                            class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded transition shadow-sm">Save
+                            Changes</button>
                     </form>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Upcoming Meals</h5>
+
+        <div class="md:col-span-1 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h5 class="font-bold text-slate-800">Upcoming Meals</h5>
                 </div>
                 <div class="card-body">
                     {% if upcoming_meals %}
-                        <div class="list-group">
-                            {% for meal in upcoming_meals %}
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">{{ meal.date|date:"D, M j" }}</h6>
-                                        <small class="text-muted">
-                                            {% if meal.breakfast %}<i class="fas fa-utensils text-success"></i>{% endif %}
-                                            {% if meal.lunch %}<i class="fas fa-utensils text-success ms-1"></i>{% endif %}
-                                            {% if meal.dinner %}<i class="fas fa-utensils text-success ms-1"></i>{% endif %}
-                                        </small>
-                                    </div>
-                                    <small class="text-muted">
-                                        {% if meal.early_breakfast %}Early Breakfast • {% endif %}
-                                        {{ meal.breakfast|yesno:"Breakfast," }}{{ meal.lunch|yesno:", Lunch," }}{{ meal.dinner|yesno:", Dinner" }}
-                                    </small>
+                    <div class="divide-y divide-slate-100">
+                        {% for meal in upcoming_meals %}
+                        <div class="p-4 hover:bg-slate-50 transition">
+                            <div class="flex justify-between items-center mb-1">
+                                <h6 class="font-medium text-slate-800">{{ meal.date|date:"D, M j" }}</h6>
+                                <div class="flex gap-1">
+                                    {% if meal.breakfast %}<span class="w-2 h-2 rounded-full bg-green-500"></span>{%
+                                    endif %}
+                                    {% if meal.lunch %}<span class="w-2 h-2 rounded-full bg-green-500"></span>{% endif
+                                    %}
+                                    {% if meal.dinner %}<span class="w-2 h-2 rounded-full bg-green-500"></span>{% endif
+                                    %}
                                 </div>
-                            {% endfor %}
+                            </div>
+                            <p class="text-xs text-slate-500">
+                                {% if meal.early_breakfast %}Early • {% endif %}
+                                {{ meal.breakfast|yesno:"B," }}{{ meal.lunch|yesno:"L," }}{{ meal.dinner|yesno:"D" }}
+                            </p>
                         </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        <p class="text-muted">No upcoming meal preferences set.</p>
+                    <p class="text-muted">No upcoming meal preferences set.</p>
                     {% endif %}
                 </div>
             </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h5>Meal Schedule</h5>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h5 class="font-bold text-slate-800">Meal Schedule</h5>
                 </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li><strong>Early Breakfast:</strong> 6:00 AM - 7:00 AM</li>
-                        <li><strong>Breakfast:</strong> 7:30 AM - 9:30 AM</li>
-                        <li><strong>Lunch:</strong> 12:30 PM - 2:30 PM</li>
-                        <li><strong>Dinner:</strong> 7:30 PM - 9:30 PM</li>
+                <div class="p-6">
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li class="flex justify-between"><span>Early Breakfast:</span> <span class="font-medium">6:00 AM
+                                - 7:00 AM</span></li>
+                        <li class="flex justify-between"><span>Breakfast:</span> <span class="font-medium">7:30 AM -
+                                9:30 AM</span></li>
+                        <li class="flex justify-between"><span>Lunch:</span> <span class="font-medium">12:30 PM - 2:30
+                                PM</span></li>
+                        <li class="flex justify-between"><span>Dinner:</span> <span class="font-medium">7:30 PM - 9:30
+                                PM</span></li>
                     </ul>
                 </div>
             </div>

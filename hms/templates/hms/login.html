@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="flex justify-center items-center py-12">
-    <div class="w-full max-w-md glass-panel rounded-xl shadow-2xl overflow-hidden border border-white/60">
-        <div class="bg-indigo-600/95 p-6 text-center backdrop-blur-sm">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+        <div class="bg-slate-900 p-6 text-center">
             <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
-            <p class="text-indigo-100 mt-1 opacity-90">Please login to your account</p>
+            <p class="text-slate-300 mt-1 opacity-90">Please login to your account</p>
         </div>
 
         <div class="p-8">
@@ -23,40 +23,40 @@
                 {% endif %}
 
                 <div>
-                    <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1">Username or
+                    <label for="id_username" class="block text-sm font-medium text-slate-700 mb-1">Username or
                         Email</label>
                     <input type="text" name="username" id="id_username" required
-                        class="w-full px-4 py-2 bg-white/50 border border-gray-300 rounded text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition placeholder-gray-500"
+                        class="w-full px-4 py-2 bg-white border border-slate-300 rounded text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-slate-400"
                         placeholder="Enter your username">
                 </div>
 
                 <div>
-                    <label for="id_password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <label for="id_password" class="block text-sm font-medium text-slate-700 mb-1">Password</label>
                     <input type="password" name="password" id="id_password" required
-                        class="w-full px-4 py-2 bg-white border border-gray-300 rounded text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition placeholder-gray-500"
+                        class="w-full px-4 py-2 bg-white border border-slate-300 rounded text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-slate-400"
                         placeholder="••••••••">
                 </div>
 
                 <div class="flex items-center justify-between text-sm">
-                    <label class="flex items-center text-gray-600 cursor-pointer">
+                    <label class="flex items-center text-slate-600 cursor-pointer">
                         <input type="checkbox"
-                            class="h-4 w-4 text-indigo-600 bg-white border-gray-300 rounded focus:ring-indigo-500 mr-2">
+                            class="h-4 w-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 mr-2">
                         Remember me
                     </label>
                     <a href="{% url 'hms:password_reset' %}"
-                        class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">Forgot Password?</a>
+                        class="text-blue-600 hover:text-blue-800 font-medium transition-colors">Forgot Password?</a>
                 </div>
 
                 <button type="submit"
-                    class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 transition duration-200 shadow-md">
+                    class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition duration-200 shadow-sm">
                     Sign In
                 </button>
             </form>
 
-            <div class="mt-6 text-center text-sm text-gray-600">
+            <div class="mt-6 text-center text-sm text-slate-600">
                 Don't have an account?
                 <a href="{% url 'hms:register' %}"
-                    class="text-indigo-600 hover:text-indigo-800 font-bold transition-colors">Register
+                    class="text-blue-600 hover:text-blue-800 font-bold transition-colors">Register
                     here</a>
             </div>
         </div>

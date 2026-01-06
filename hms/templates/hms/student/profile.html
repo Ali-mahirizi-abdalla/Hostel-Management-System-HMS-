@@ -12,8 +12,8 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Profile Card -->
         <div class="md:col-span-1">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="bg-indigo-600 h-24"></div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-700 h-24"></div>
                 <div class="px-6 pb-6 relative">
                     <div class="relative -mt-12 mb-4 flex justify-between items-end">
                         <div class="image-preview-container">
@@ -22,13 +22,14 @@
                                 class="w-full h-full object-cover">
                             {% else %}
                             <div id="preview-placeholder"
-                                class="w-full h-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold text-2xl">
+                                class="w-full h-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-2xl">
                                 {{ student.user.first_name|first }}{{ student.user.last_name|first }}
                             </div>
                             <img id="preview-image" src="#" alt="Preview" class="w-full h-full object-cover hidden">
                             {% endif %}
                         </div>
-                        <span class="mb-1 mr-1 px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-full">
+                        <span
+                            class="mb-1 mr-1 px-3 py-1 bg-slate-100 text-slate-800 text-xs font-bold rounded-full border border-slate-200">
                             {{ student.university_id }}
                         </span>
                     </div>
@@ -73,7 +74,7 @@
                                         </svg>
                                     </div>
                                     <input type="text" name="phone" value="{{ student.phone }}"
-                                        class="pl-10 w-full text-sm border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 form-input-glass"
+                                        class="pl-10 w-full text-sm border-slate-300 rounded focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="+254...">
                                 </div>
                             </div>
@@ -86,8 +87,8 @@
                                   file:mr-4 file:py-2 file:px-4
                                   file:rounded-full file:border-0
                                   file:text-xs file:font-semibold
-                                  file:bg-indigo-50 file:text-indigo-700
-                                  hover:file:bg-indigo-100
+                                  file:bg-slate-50 file:text-blue-700
+                                  hover:file:bg-slate-100
                                   cursor-pointer
                                 " />
                             </div>
@@ -107,9 +108,9 @@
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-                    <div class="text-2xl font-bold text-indigo-600">--</div>
-                    <div class="text-xs text-gray-500 uppercase tracking-wide">Meals This Month</div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                    <div class="text-2xl font-bold text-blue-600">--</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Meals This Month</div>
                 </div>
                 <!-- Add more stats later -->
             </div>
