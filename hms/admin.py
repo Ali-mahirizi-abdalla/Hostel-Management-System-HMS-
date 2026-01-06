@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, Meal, Activity, AwayPeriod
+from .models import Student, Meal, Activity, AwayPeriod, Announcement
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -21,3 +21,10 @@ class ActivityAdmin(admin.ModelAdmin):
 class AwayPeriodAdmin(admin.ModelAdmin):
     list_display = ('student', 'start_date', 'end_date')
     list_filter = ('start_date', 'end_date')
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ('title', 'priority', 'is_active', 'created_by', 'created_at')
+    list_filter = ('priority', 'is_active', 'created_at')
+    search_fields = ('title', 'content')
+

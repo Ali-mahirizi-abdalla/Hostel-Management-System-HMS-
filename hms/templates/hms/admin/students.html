@@ -18,7 +18,7 @@
             <thead>
                 <tr style="border-bottom: 2px solid var(--glass-border);">
                     <th style="padding: var(--spacing-sm); text-align: left;">Name</th>
-                    <th style="padding: var(--spacing-sm); text-align: left;">Room</th>
+                    <th style="padding: var(--spacing-sm); text-align: left;">University ID</th>
                     <th style="padding: var(--spacing-sm); text-align: left;">Phone</th>
                     <th style="padding: var(--spacing-sm); text-align: center;">Status</th>
                 </tr>
@@ -27,15 +27,11 @@
                 {% for student in students %}
                 <tr style="border-bottom: 1px solid var(--glass-border);">
                     <td style="padding: var(--spacing-sm); font-weight: 600;">{{ student.user.get_full_name }}</td>
-                    <td style="padding: var(--spacing-sm);">{{ student.room_number }}</td>
+                    <td style="padding: var(--spacing-sm);">{{ student.university_id }}</td>
                     <td style="padding: var(--spacing-sm); color: var(--text-muted);">{{
-                        student.phone_number|default:"N/A" }}</td>
+                        student.phone|default:"N/A" }}</td>
                     <td style="padding: var(--spacing-sm); text-align: center;">
-                        {% if student.is_away %}
                         <span style="color: var(--danger);">🏠 Away</span>
-                        {% else %}
-                        <span style="color: var(--success);">✅ Present</span>
-                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

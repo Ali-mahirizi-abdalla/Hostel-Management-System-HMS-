@@ -19,7 +19,7 @@
                 </svg>
                 Dashboard
             </a>
-            <a href="#"
+            <a href="{% url 'hms:manage_students' %}"
                 class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -37,7 +37,7 @@
                 </svg>
                 Meal Records
             </a>
-            <a href="#"
+            <a href="{% url 'hms:away_list' %}"
                 class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -45,6 +45,24 @@
                     </path>
                 </svg>
                 Away List
+            </a>
+            <a href="{% url 'hms:manage_announcements' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5.882V19.297A7.002 7.002 0 007 18c-1.603 0-3.042.533-4.187 1.432A1 1 0 011 18.583V5.572a1 1 0 011.238-.973A8.001 8.001 0 017 6c1.144 0 2.223.24 3.19.673.48.216.81.68.81 1.209zm4 0V19.297a7.002 7.002 0 014-1.297c1.603 0 3.042.533 4.187 1.432A1 1 0 0023 18.583V5.572a1 1 0 00-1.238-.973A8.001 8.001 0 0017 6c-1.144 0-2.223.24-3.19.673-.48.216-.81.68-.81 1.209zm0 0v11.697">
+                    </path>
+                </svg>
+                Announcements
+            </a>
+            <a href="{% url 'hms:activities' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+                Activities
             </a>
         </nav>
 

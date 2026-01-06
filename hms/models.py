@@ -66,3 +66,24 @@ class Activity(models.Model):
 
     def __str__(self):
         return f"{self.get_weekday_display()} - {self.display_name}"
+
+class Announcement(models.Model):
+    """System announcements"""
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='announcements')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    priority = models.CharField(max_length=20, choices=[
+        ('low', 'Low'),
+        ('normal', 'Normal'),
+        ('high', 'High'),
+        ('urgent', 'Urgent')
+    ], default='normal')
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title

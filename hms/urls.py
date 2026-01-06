@@ -23,6 +23,24 @@ urlpatterns = [
     path('kitchen/export-csv/', views.export_meals_csv, name='export_meals_csv'),
     path('kitchen/send-notifications/', views.send_meal_notifications, name='send_notifications'),
     
+    # Student Management
+    path('manage/students/', views.manage_students, name='manage_students'),
+    path('manage/students/add/', views.add_student, name='add_student'),
+    path('manage/students/edit/<int:user_id>/', views.edit_student, name='edit_student'),
+    path('manage/students/delete/<int:user_id>/', views.delete_student, name='delete_student'),
+    path('manage/students/details/<int:user_id>/', views.student_details, name='student_details'),
+    path('manage/away-list/', views.away_list, name='away_list'),
+    
+    # Announcements
+    path('announcements/', views.announcements_list, name='announcements'),
+    path('manage/announcements/', views.manage_announcements, name='manage_announcements'),
+    path('manage/announcements/create/', views.create_announcement, name='create_announcement'),
+    path('manage/announcements/edit/<int:pk>/', views.edit_announcement, name='edit_announcement'),
+    path('manage/announcements/delete/<int:pk>/', views.delete_announcement, name='delete_announcement'),
+    
+    # Activities
+    path('manage/activities/', views.activities_list, name='activities'),
+    
     # Password Reset
     # Explicitly defining these to ensure they are available
     path('password-reset/', 

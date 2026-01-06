@@ -22,23 +22,29 @@
     /* Cyan */
 
     /* Backgrounds */
-    --bg-dark: #f8fafc;
+    --bg-dark: #f0f4f8;
     /* Very Light Grey Background */
     --bg-darker: #e2e8f0;
     /* Slightly Darker Grey */
-    --bg-card: #ffffff;
+    --bg-card: rgba(255, 255, 255, 0.9);
     /* White Cards */
-    --bg-gradient-top: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+    --bg-gradient-top: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     /* Teal to Cyan */
     --bg-gradient-header: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     /* Indigo to Purple */
+    --bg-gradient-body: radial-gradient(circle at top left, #ccfbf1 0%, #f1f5f9 40%, #cffafe 100%);
+
+    /* Dark Mode Defaults */
+    --dm-bg: #0f172a;
+    --dm-card: rgba(30, 41, 59, 0.8);
+    --dm-border: rgba(255, 255, 255, 0.1);
 
     /* Text */
     --text-primary: #1e293b;
     /* Dark Slate */
-    --text-secondary: #64748b;
+    --text-secondary: #475569;
     /* Medium Slate */
-    --text-muted: #94a3b8;
+    --text-muted: #64748b;
     /* Light Slate */
     --text-white: #ffffff;
     /* White */
@@ -91,12 +97,23 @@
 /* ==================== Body with Animated Background ==================== */
 body {
     font-family: 'Outfit', sans-serif;
-    background-color: var(--bg-dark);
+    background: var(--bg-gradient-body);
+    background-attachment: fixed;
     color: var(--text-primary);
     min-height: 100vh;
     line-height: 1.6;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+}
+
+[data-theme="dark"] {
+    --bg-gradient-body: radial-gradient(circle at top right, #1e1b4b, #0f172a 40%);
+    --bg-card: var(--dm-card);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --glass-bg: rgba(15, 23, 42, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg-hover: rgba(15, 23, 42, 0.8);
 }
 
 
@@ -241,9 +258,11 @@ body {
 /* ==================== Glass Cards with Glow ==================== */
 /* ==================== Standard Cards ==================== */
 .glass-card {
-    background: var(--bg-card);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     padding: var(--spacing-md);
     box-shadow: var(--glass-shadow);
     transition: all var(--transition-base);
@@ -252,7 +271,9 @@ body {
 }
 
 .glass-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+    background: var(--glass-bg-hover);
 }
 
 .card-header {

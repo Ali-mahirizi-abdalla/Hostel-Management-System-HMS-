@@ -26,13 +26,13 @@
             <tbody>
                 {% for activity in activities %}
                 <tr style="border-bottom: 1px solid var(--glass-border);">
-                    <td style="padding: var(--spacing-sm); font-weight: 600;">{{ activity.get_day_of_week_display }}
+                    <td style="padding: var(--spacing-sm); font-weight: 600;">{{ activity.get_weekday_display }}
                     </td>
-                    <td style="padding: var(--spacing-sm);">{{ activity.activity_name }}</td>
-                    <td style="padding: var(--spacing-sm); color: var(--text-muted);">{{ activity.start_time|time:"g:i
-                        A" }} - {{ activity.end_time|time:"g:i A" }}</td>
+                    <td style="padding: var(--spacing-sm);">{{ activity.display_name }}</td>
+                    <td style="padding: var(--spacing-sm); color: var(--text-muted);">{{ activity.time|time:"g:i A" }}
+                    </td>
                     <td style="padding: var(--spacing-sm); text-align: center;">
-                        {% if activity.is_active %}
+                        {% if activity.active %}
                         <span style="color: var(--success);">✅ Active</span>
                         {% else %}
                         <span style="color: var(--text-muted);">❌ Inactive</span>
@@ -50,7 +50,7 @@
 
 <div class="mt-3">
     <a href="{% url 'hms:admin_dashboard' %}" class="btn btn-secondary">← Back to Admin</a>
-    <a href="/admin/hms/activityschedule/add/" class="btn btn-primary">+ Add Activity</a>
+    <a href="/admin/hms/activity/add/" class="btn btn-primary">+ Add Activity</a>
 </div>
 
 {% endblock %}

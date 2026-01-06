@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Student, Meal, Activity, AwayPeriod
+from .models import Student, Meal, Activity, AwayPeriod, Announcement
 from .forms import StudentRegistrationForm, AwayModeForm
 from datetime import date, datetime, time, timedelta
 from django.db import transaction, models
@@ -463,3 +464,231 @@ Do not reply to this email.
         messages.error(request, f'❌ Failed to send email: {str(e)}')
     
     return redirect('hms:admin_dashboard')
+
+@login_required
+def manage_students(request):
+    """List and filter students (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    search_query = request.GET.get('search', '')
+    students = Student.objects.all().select_related('user').order_by('user__first_name')
+    
+    if search_query:
+        students = students.filter(
+            models.Q(user__first_name__icontains=search_query) |
+            models.Q(user__last_name__icontains=search_query) |
+            models.Q(university_id__icontains=search_query)
+        )
+    
+    paginator = Paginator(students, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+    }
+    return render(request, 'hms/admin/manage_students.html', context)
+
+@login_required
+def add_student(request):
+    """Add a new student (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    if request.method == 'POST':
+        form = StudentRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Student added successfully!')
+            return redirect('hms:manage_students')
+    else:
+        form = StudentRegistrationForm()
+    
+    return render(request, 'hms/registration/register.html', {'form': form, 'title': 'Add New Student'})
+
+@login_required
+def edit_student(request, user_id):
+    """Edit student profile (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    user = get_object_or_404(User, id=user_id)
+    student = get_object_or_404(Student, user=user)
+    
+    if request.method == 'POST':
+        # Simple update for demo
+        user.first_name = request.POST.get('first_name')
+        user.last_name = request.POST.get('last_name')
+        user.email = request.POST.get('email')
+        user.save()
+        
+        student.university_id = request.POST.get('university_id')
+        student.phone = request.POST.get('phone')
+        student.save()
+        
+        messages.success(request, 'Student profile updated!')
+        return redirect('hms:manage_students')
+    
+    return render(request, 'hms/admin/student_details.html', {'student': student, 'edit_mode': True})
+
+@login_required
+def delete_student(request, user_id):
+    """Delete student (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('hms:student_dashboard')
+        
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    messages.success(request, "Student deleted successfully.")
+    return redirect('hms:manage_students')
+
+@login_required
+def student_details(request, user_id):
+    """View student details (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('hms:student_dashboard')
+        
+    user = get_object_or_404(User, id=user_id)
+    student = get_object_or_404(Student, user=user)
+    meal_history = student.meals.all().order_by('-date')[:15]
+    
+    return render(request, 'hms/admin/student_details.html', {
+        'student': student,
+        'meal_history': meal_history
+    })
+
+@login_required
+def away_list(request):
+    """View list of students currently away (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('hms:student_dashboard')
+        
+    today = date.today()
+    away_periods = AwayPeriod.objects.filter(start_date__lte=today, end_date__gte=today).select_related('student__user')
+    
+    return render(request, 'hms/admin/students.html', {'students': [ap.student for ap in away_periods]})
+
+# ==================== Announcements ====================
+
+@login_required
+def announcements_list(request):
+    """View all announcements"""
+    announcements = Announcement.objects.filter(is_active=True).order_by('-created_at')
+    context = {
+        'announcements': announcements
+    }
+    return render(request, 'hms/student/announcements.html', context)
+
+@login_required
+def manage_announcements(request):
+    """Manage announcements (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    announcements = Announcement.objects.all().order_by('-created_at')
+    
+    if search_query:
+        announcements = announcements.filter(
+            models.Q(title__icontains=search_query) |
+            models.Q(content__icontains=search_query)
+        )
+    
+    if status_filter == 'active':
+        announcements = announcements.filter(is_active=True)
+    elif status_filter == 'inactive':
+        announcements = announcements.filter(is_active=False)
+        
+    paginator = Paginator(announcements, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'status_filter': status_filter,
+    }
+    return render(request, 'hms/admin/manage_announcements.html', context)
+
+@login_required
+def delete_announcement(request, pk):
+    """Delete an announcement (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('hms:student_dashboard')
+        
+    announcement = get_object_or_404(Announcement, pk=pk)
+    announcement.delete()
+    messages.success(request, "Announcement deleted successfully.")
+    return redirect('hms:manage_announcements')
+
+@login_required
+def edit_announcement(request, pk):
+    """Edit an announcement (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('hms:student_dashboard')
+        
+    announcement = get_object_or_404(Announcement, pk=pk)
+    
+    if request.method == 'POST':
+        announcement.title = request.POST.get('title')
+        announcement.content = request.POST.get('content')
+        announcement.priority = request.POST.get('priority', 'normal')
+        announcement.is_active = request.POST.get('is_active') == 'on'
+        announcement.save()
+        messages.success(request, "Announcement updated successfully.")
+        return redirect('hms:manage_announcements')
+        
+    return render(request, 'hms/admin/announcement_form.html', {'announcement': announcement, 'edit_mode': True})
+
+
+@login_required
+def create_announcement(request):
+    """Create new announcement"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    from .models import Announcement
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        priority = request.POST.get('priority', 'normal')
+        
+        Announcement.objects.create(
+            title=title,
+            content=content,
+            priority=priority,
+            created_by=request.user
+        )
+        messages.success(request, 'Announcement created successfully!')
+        return redirect('hms:manage_announcements')
+    
+    return render(request, 'hms/admin/announcement_form.html')
+
+# ==================== Activities ====================
+
+@login_required
+def activities_list(request):
+    """View all activities"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    activities = Activity.objects.filter(active=True).order_by('weekday', 'time')
+    context = {
+        'activities': activities
+    }
+    return render(request, 'hms/admin/activities.html', context)
