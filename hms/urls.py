@@ -40,6 +40,14 @@ urlpatterns = [
     
     # Activities
     path('manage/activities/', views.activities_list, name='activities'),
+
+    # Features
+    path('manage/upload-document/', views.upload_document, name='upload_document'),
+    path('student/upload-timetable/', views.upload_timetable, name='upload_timetable'),
+    path('student/select-room/', views.select_room, name='select_room'),
+    path('chat/', views.chat_view, name='chat'),
+    path('chat/<int:recipient_id>/', views.chat_view, name='chat_with'),
+
     
     # Password Reset
     # Explicitly defining these to ensure they are available

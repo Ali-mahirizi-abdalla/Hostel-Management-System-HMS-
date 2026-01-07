@@ -1,4 +1,9 @@
-{% extends 'hms/base.html' %}
+
+import os
+
+file_path = r"c:\Users\jamal\OneDrive\Desktop\HMS\Hostel-Management-System-HMS-\hms\templates\hms\admin\announcement_form.html"
+
+new_content = """{% extends 'hms/base.html' %}
 
 {% block title %}{% if edit_mode %}Edit{% else %}Create{% endif %} Announcement - HMS{% endblock %}
 
@@ -55,4 +60,9 @@
         </form>
     </div>
 </div>
-{% endblock %}
+{% endblock %}"""
+
+with open(file_path, "w", encoding='utf-8') as f:
+    f.write(new_content)
+
+print(f"File {file_path} rewritten successfully.")

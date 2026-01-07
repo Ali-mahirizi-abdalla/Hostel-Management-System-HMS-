@@ -1,0 +1,74 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}Chat - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 h-[80vh]">
+    <!-- Contact List (Admin only) -->
+    {% if user.is_staff %}
+    <div class="md:col-span-1 glass-card overflow-y-auto">
+        <h2 class="text-xl font-bold mb-4 p-4 sticky top-0 bg-white/10 backdrop-blur-md">Students</h2>
+        <div class="flex flex-col space-y-2 p-2">
+            {% for student in students %}
+            <a href="{% url 'hms:chat_with' student.user.id %}"
+                class="p-3 rounded-lg hover:bg-white/10 transition flex justify-between items-center {% if other_user.id == student.user.id %}bg-white/20{% endif %}">
+                <span class="font-medium">{{ student.user.get_full_name|default:student.user.username }}</span>
+                {% if student.unread_count > 0 %}
+                <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ student.unread_count }}</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Chat Area -->
+    <div class="{% if user.is_staff %}md:col-span-3{% else %}col-span-4{% endif %} glass-card flex flex-col h-full">
+        {% if other_user %}
+        <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+            <h2 class="text-xl font-bold">Chat with {{ other_user.get_full_name|default:other_user.username }}</h2>
+        </div>
+
+        <div class="flex-grow overflow-y-auto p-6 space-y-4 flex flex-col" id="chat-messages">
+            {% for msg in messages %}
+            <div
+                class="max-w-[80%] p-3 rounded-2xl shadow-sm {% if msg.sender == user %}self-end bg-indigo-600 text-white{% else %}self-start bg-gray-100 text-gray-800{% endif %}">
+                <p>{{ msg.content }}</p>
+                <span class="text-xs opacity-70 block mt-1 text-right">{{ msg.timestamp|date:"H:i" }}</span>
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-400 mt-10">
+                <p>No messages yet. Start the conversation!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="p-4 border-t border-white/10 bg-white/5">
+            <form method="post" class="flex gap-2">
+                {% csrf_token %}
+                <div class="flex-grow">
+                    {{ form.content }}
+                </div>
+                <button type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition shadow-lg self-end h-full">
+                    Send
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="flex items-center justify-center h-full text-gray-400">
+            <p class="text-xl">Select a conversation to start chatting.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Auto-scroll to bottom
+    const chatContainer = document.getElementById('chat-messages');
+    if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+</script>
+{% endblock %}

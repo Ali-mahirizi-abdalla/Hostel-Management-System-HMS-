@@ -1,0 +1,33 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}Upload Document - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto glass-card p-8 mt-10">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Upload Document</h2>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Title</label>
+            {{ form.title }}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File</label>
+            {{ form.file }}
+        </div>
+
+        <button type="submit"
+            class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform hover:-translate-y-1">
+            Upload
+        </button>
+
+        <a href="{% url 'hms:admin_dashboard' %}" class="block text-center text-teal-600 hover:text-teal-500 mt-4">
+            Cancel
+        </a>
+    </form>
+</div>
+{% endblock %}

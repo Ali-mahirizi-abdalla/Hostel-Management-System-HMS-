@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Student, AwayPeriod, Activity
+from .models import Student, AwayPeriod, Activity, Document, Message
 
 class StudentRegistrationForm(forms.ModelForm):
     # User fields
@@ -33,6 +33,12 @@ class StudentRegistrationForm(forms.ModelForm):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("This username is already taken.")
         return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already in use.")
+        return email
 
     def save(self, commit=True):
         # 1. Create the User (triggers post_save signal which creates a Student profile)
@@ -83,4 +89,41 @@ class ActivityForm(forms.ModelForm):
             'time': forms.TimeInput(attrs={'type': 'time', 'class': 'w-full p-2 border rounded'}),
             'description': forms.Textarea(attrs={'class': 'w-full p-2 border rounded', 'rows': 3}),
             'active': forms.CheckboxInput(attrs={'class': 'p-2'}),
+        }
+
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ['title', 'file']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'file': forms.FileInput(attrs={'class': 'w-full p-2 border rounded'}),
+        }
+
+class TimetableForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['timetable']
+        widgets = {
+            'timetable': forms.FileInput(attrs={'class': 'w-full p-2 border rounded'}),
+        }
+
+class RoomSelectionForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['room_number']
+        widgets = {
+            'room_number': forms.Select(choices=[(str(i), str(i)) for i in range(1, 51)], attrs={'class': 'w-full p-2 border rounded'}),
+        }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500', 
+                'rows': 3, 
+                'placeholder': 'Type your message...'
+            }),
         }

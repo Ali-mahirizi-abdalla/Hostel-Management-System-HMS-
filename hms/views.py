@@ -4,10 +4,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Student, Meal, Activity, AwayPeriod, Announcement
-from .forms import StudentRegistrationForm, AwayModeForm
+from .models import Student, Meal, Activity, AwayPeriod, Announcement, Document, Message
+from .forms import StudentRegistrationForm, AwayModeForm, DocumentForm, TimetableForm, RoomSelectionForm, MessageForm
 from datetime import date, datetime, time, timedelta
 from django.db import transaction, models
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponse, HttpResponseForbidden
 
@@ -127,6 +128,10 @@ def student_dashboard(request):
         'tomorrow_early_attr': 'checked' if meal_tomorrow.early else '',
         'tomorrow_supper_attr': 'checked' if meal_tomorrow.supper else '',
         'tomorrow_disabled_attr': 'disabled' if is_away_tomorrow else '',
+        'announcements': Announcement.objects.filter(is_active=True).order_by('-created_at')[:5],
+        'activities': Activity.objects.filter(active=True).order_by('weekday', 'time'),
+        'documents': Document.objects.all().order_by('-uploaded_at'),
+        'unread_messages': Message.objects.filter(recipient=request.user, is_read=False).count(),
     }
     return render(request, 'hms/student/dashboard.html', context)
 
@@ -692,3 +697,111 @@ def activities_list(request):
         'activities': activities
     }
     return render(request, 'hms/admin/activities.html', context)
+
+# ==================== Additional Features ====================
+
+@login_required
+def upload_document(request):
+    """Admin upload document"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('hms:student_dashboard')
+        
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Document uploaded successfully.")
+            return redirect('hms:admin_dashboard')
+    else:
+        form = DocumentForm()
+    return render(request, 'hms/admin/upload_document.html', {'form': form})
+
+@login_required
+def upload_timetable(request):
+    """Student upload timetable"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        return redirect('hms:student_dashboard')
+        
+    if request.method == 'POST':
+        form = TimetableForm(request.POST, request.FILES, instance=student)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Timetable uploaded successfully.")
+            return redirect('hms:student_profile')
+    return redirect('hms:student_profile')
+
+@login_required
+def select_room(request):
+    """Student select room"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        return redirect('hms:student_dashboard')
+        
+    if request.method == 'POST':
+        form = RoomSelectionForm(request.POST, instance=student)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Room {student.room_number} selected.")
+    return redirect('hms:student_profile')
+
+@login_required
+def chat_view(request, recipient_id=None):
+    """Chat interface"""
+    if request.user.is_staff:
+        # Admin view: List students
+        students = Student.objects.all().select_related('user')
+        
+        # Calculate unread counts
+        for s in students:
+            s.unread_count = Message.objects.filter(sender=s.user, recipient=request.user, is_read=False).count()
+
+        if recipient_id:
+             other_user = get_object_or_404(User, id=recipient_id)
+        else:
+             other_user = None
+    else:
+        # Student view: Chat with Admin 
+        admin_user = User.objects.filter(is_staff=True).first()
+        if not admin_user:
+            messages.error(request, "No admin available to chat.")
+            return redirect('hms:student_dashboard')
+        other_user = admin_user
+        students = None
+        
+    messages_qs = []
+    if other_user:
+        messages_qs = Message.objects.filter(
+            (models.Q(sender=request.user) & models.Q(recipient=other_user)) |
+            (models.Q(sender=other_user) & models.Q(recipient=request.user))
+        ).order_by('timestamp')
+        
+        # Mark as read
+        Message.objects.filter(recipient=request.user, sender=other_user).update(is_read=True)
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid() and other_user:
+            msg = form.save(commit=False)
+            msg.sender = request.user
+            msg.recipient = other_user
+            msg.save()
+            # Redirect to avoid form resubmission
+            if request.user.is_staff:
+                 return redirect('hms:chat_with', recipient_id=other_user.id)
+            else:
+                 return redirect('hms:chat')
+            
+    else:
+        form = MessageForm()
+        
+    context = {
+        'other_user': other_user,
+        'messages': messages_qs,
+        'form': form,
+        'students': students
+    }
+    return render(request, 'hms/chat.html', context)

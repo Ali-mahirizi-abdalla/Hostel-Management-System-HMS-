@@ -9,6 +9,8 @@ class Student(models.Model):
     university_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
     phone = models.CharField(max_length=15, blank=True)
     profile_image = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    timetable = models.FileField(upload_to='timetables/', blank=True, null=True)
+    room_number = models.CharField(max_length=10, blank=True, null=True)
     is_warden = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -87,3 +89,26 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
+
+class Document(models.Model):
+    """Admin uploaded documents for students"""
+    title = models.CharField(max_length=200)
+    file = models.FileField(upload_to='documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.title
+
+class Message(models.Model):
+    """Chat messages between student and admin"""
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f"From {self.sender} to {self.recipient}"

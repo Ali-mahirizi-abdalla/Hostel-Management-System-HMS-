@@ -201,6 +201,16 @@
                 html.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
             });
+            
+            // Auto-dismiss messages
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.border-l-4'); // Selector for message cards
+                alerts.forEach(alert => {
+                    alert.style.transition = 'opacity 0.5s ease';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 5000);
         });
     </script>
 </body>

@@ -1,258 +1,346 @@
 {% extends 'hms/base.html' %}
+{% load static %}
 
 {% block title %}Dashboard - HMS{% endblock %}
 
 {% block content %}
 <div class="space-y-8">
     <!-- Welcome Header -->
-    <div class="flex flex-col md:flex-row justify-between items-end border-b border-slate-200 pb-6">
+    <div
+        class="flex flex-col md:flex-row justify-between items-end border-b border-slate-200 dark:border-slate-700 pb-6">
         <div>
-            <h1 class="text-3xl font-bold text-slate-800">Hello, {{ student.user.first_name }}!</h1>
-            <p class="text-slate-500 mt-1 text-lg">Plan your meals for today and tomorrow.</p>
+            <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Hello, {{ student.user.first_name }}!</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1 text-lg">Plan your meals and check updates.</p>
         </div>
         <div class="mt-4 md:mt-0 flex flex-col items-end gap-3">
             <span
-                class="bg-slate-100 text-slate-600 border border-slate-200 px-4 py-1.5 rounded-full text-sm font-medium">
+                class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-full text-sm font-medium">
                 {{ today|date:"l, d M Y" }}
             </span>
-            <a href="https://student.pu.ac.ke/Account/Login?ReturnUrl=%2fFinance%2fPesaflowPayment" target="_blank"
-                class="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors flex items-center gap-1">
-                University Portal
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-            </a>
+            <div class="flex gap-4">
+                <a href="{% url 'hms:chat' %}"
+                    class="relative text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                        </path>
+                    </svg>
+                    Chat with Admin
+                    {% if unread_messages > 0 %}
+                    <span class="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] px-1.5 rounded-full">{{
+                        unread_messages }}</span>
+                    {% endif %}
+                </a>
+                <a href="https://student.pu.ac.ke/Account/Login" target="_blank"
+                    class="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium">
+                    Portal <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </div>
         </div>
     </div>
 
-    {% if is_away_today %}
-    <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 rounded shadow-sm">
-        <p class="font-bold">You are currently marked as AWAY.</p>
-        <p>Meal selection is disabled. Update Away Mode settings to resume meals.</p>
+    <!-- Announcements Section -->
+    {% if announcements %}
+    <div
+        class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h3 class="font-bold text-xl mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
+                    </path>
+                </svg>
+                Latest Announcements
+            </h3>
+            <div class="space-y-4">
+                {% for announcement in announcements %}
+                <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold">{{ announcement.title }}</h4>
+                        <span class="text-xs bg-white/20 px-2 py-1 rounded">{{ announcement.created_at|date:"M d"
+                            }}</span>
+                    </div>
+                    <p class="text-white/90 mt-1 text-sm">{{ announcement.content }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Decorative bg -->
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
     </div>
     {% endif %}
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Today's Card -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden relative border border-slate-200">
-            <div class="bg-slate-800 p-5 flex justify-between items-center text-white">
-                <div class="flex items-center gap-3">
-                    <div class="bg-white/10 p-2 rounded backdrop-blur-sm">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                            </path>
-                        </svg>
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left Column: Meals (2 cols wide) -->
+        <div class="lg:col-span-2 space-y-8">
+            {% if is_away_today %}
+            <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 rounded shadow-sm">
+                <p class="font-bold">You are currently marked as AWAY.</p>
+                <p>Meal selection is disabled. Update Away Mode settings to resume meals.</p>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Today's Meal Card -->
+                <div
+                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div class="bg-slate-800 dark:bg-slate-900 p-4 flex justify-between items-center text-white">
+                        <h2 class="font-bold text-lg flex items-center gap-2">
+                            <span class="text-2xl">Today</span>
+                        </h2>
+                        <span class="text-xs bg-white/10 px-2 py-1 rounded">{{ today|date:"M d" }}</span>
                     </div>
-                    <h2 class="font-bold text-xl tracking-tight">Today</h2>
+                    <div class="p-5">
+                        {% if is_locked %}
+                        <div class="mb-4 bg-amber-50 text-amber-800 text-xs p-2 rounded flex items-center">
+                            Breakfast locked (08:00 AM)
+                        </div>
+                        {% endif %}
+                        <form action="{% url 'hms:confirm_meals' %}" method="post" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
+
+                            <!-- Breakfast -->
+                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-700/50 rounded">
+                                <div>
+                                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">Breakfast</h3>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">7:00 - 9:00 AM</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="breakfast" class="sr-only peer" {{ today_breakfast_attr
+                                        }} {{ today_disabled_attr }}>
+                                    <div
+                                        class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500">
+                                    </div>
+                                </label>
+                            </div>
+                            <!-- Early -->
+                            <div class="flex items-center justify-between px-2 -mt-2">
+                                <span class="text-[10px] text-gray-400">Early (Before 7am)</span>
+                                <input type="checkbox" name="early" class="rounded text-indigo-600" {{ today_early_attr
+                                    }} {{ today_disabled_attr }}>
+                            </div>
+                            <!-- Supper -->
+                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-700/50 rounded">
+                                <div>
+                                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">Supper</h3>
+                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">6:00 - 8:00 PM</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="supper" class="sr-only peer" {{ today_supper_attr }} {{
+                                        today_disabled_attr }}>
+                                    <div
+                                        class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <button type="submit" {{ today_disabled_attr }}
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition {% if is_away_today %}opacity-50 cursor-not-allowed{% endif %}">Update
+                                Today</button>
+                        </form>
+                    </div>
                 </div>
-                <span class="text-sm font-medium bg-white/10 px-3 py-1 rounded">{{ today|date:"M d" }}</span>
+
+                <!-- Tomorrow's Meal Card -->
+                <div
+                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div class="bg-slate-700 dark:bg-slate-800 p-4 flex justify-between items-center text-white">
+                        <h2 class="font-bold text-lg flex items-center gap-2">
+                            <span class="text-2xl">Tomorrow</span>
+                        </h2>
+                        <span class="text-xs bg-white/10 px-2 py-1 rounded">{{ tomorrow|date:"M d" }}</span>
+                    </div>
+                    <div class="p-5">
+                        <form action="{% url 'hms:confirm_meals' %}" method="post" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="date" value="{{ tomorrow|date:'Y-m-d' }}">
+
+                            <!-- Breakfast -->
+                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-700/50 rounded">
+                                <div>
+                                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">Breakfast</h3>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="breakfast" class="sr-only peer" {{
+                                        tomorrow_breakfast_attr }} {{ tomorrow_disabled_attr }}>
+                                    <div
+                                        class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500">
+                                    </div>
+                                </label>
+                            </div>
+                            <!-- Early -->
+                            <div class="flex items-center justify-between px-2 -mt-2">
+                                <span class="text-[10px] text-gray-400">Early (Before 7am)</span>
+                                <input type="checkbox" name="early" class="rounded text-indigo-600" {{
+                                    tomorrow_early_attr }} {{ tomorrow_disabled_attr }}>
+                            </div>
+                            <!-- Supper -->
+                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-700/50 rounded">
+                                <div>
+                                    <h3 class="font-medium text-gray-900 dark:text-white text-sm">Supper</h3>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="supper" class="sr-only peer" {{ tomorrow_supper_attr }}
+                                        {{ tomorrow_disabled_attr }}>
+                                    <div
+                                        class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <button type="submit" {{ tomorrow_disabled_attr }}
+                                class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 rounded text-sm transition {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">Update
+                                Tomorrow</button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
-            <div class="p-6">
-                {% if is_locked %}
-                <div class="mb-4 bg-amber-50 text-amber-800 text-xs p-2 rounded flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Documents Section -->
+            {% if documents %}
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                <h3 class="text-xl font-bold mb-4 text-slate-800 dark:text-white border-b pb-2">Documents & Resources
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for doc in documents %}
+                    <a href="{{ doc.file.url }}" target="_blank"
+                        class="flex items-center p-3 rounded-lg border border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700 transition group">
+                        <div class="bg-red-100 p-2 rounded mr-3 text-red-600 group-hover:bg-red-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-slate-800 dark:text-white">{{ doc.title }}</p>
+                            <p class="text-xs text-slate-500">{{ doc.uploaded_at|date:"M d, Y" }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Activities, Away, Quick Actions -->
+        <div class="space-y-6">
+
+            <!-- Away Mode -->
+            <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-6">
+                <h3 class="font-bold text-slate-900 dark:text-white mb-2">Going Away?</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Mark yourself as away to cancel meals.</p>
+                <button onclick="document.getElementById('away-mode-modal').classList.remove('hidden')"
+                    class="w-full bg-white dark:bg-slate-700 text-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 font-bold py-2 px-4 rounded hover:bg-slate-50 dark:hover:bg-slate-600 transition">
+                    Set Away Mode
+                </button>
+            </div>
+
+            <!-- Weekly Activities -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-5">
+                <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                         </path>
                     </svg>
-                    Breakfast selection is locked (past 08:00 AM)
+                    Weekly Activities
+                </h3>
+                <div class="space-y-3">
+                    {% for activity in activities %}
+                    <div class="flex gap-3 items-start p-3 rounded bg-slate-50 dark:bg-slate-700/30">
+                        <div class="bg-teal-100 text-teal-700 text-xs font-bold px-2 py-1 rounded">
+                            {{ activity.get_weekday_display|slice:":3" }}
+                        </div>
+                        <div>
+                            <p class="font-medium text-slate-800 dark:text-white text-sm">{{ activity.display_name }}
+                            </p>
+                            <p class="text-xs text-slate-500">{{ activity.time|date:"g:i A" }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-slate-500 italic">No activities scheduled.</p>
+                    {% endfor %}
                 </div>
-                {% endif %}
-
-                <form action="{% url 'hms:confirm_meals' %}" method="post" class="space-y-4">
-                    {% csrf_token %}
-                    <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
-
-                    <!-- Breakfast -->
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div class="flex items-center">
-                            <span
-                                class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
-                                🍳
-                            </span>
-                            <div>
-                                <h3 class="font-medium text-gray-900">Breakfast</h3>
-                                <p class="text-xs text-gray-500">Served 7:00 - 9:00 AM</p>
-                            </div>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="breakfast" class="sr-only peer" {{ today_breakfast_attr }} {{
-                                today_disabled_attr }}>
-                            <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_locked or is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
-                            </div>
-                        </label>
-                    </div>
-
-                    <!-- Early Breakfast Option -->
-                    <div class="flex items-center justify-between p-2 pl-14 -mt-2">
-                        <span class="text-xs text-gray-500">Need early breakfast? (Before 7am)</span>
-                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {{
-                            today_early_attr }} {{ today_disabled_attr }}>
-                    </div>
-
-                    <!-- Supper -->
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div class="flex items-center">
-                            <span
-                                class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                                🥣
-                            </span>
-                            <div>
-                                <h3 class="font-medium text-gray-900">Supper</h3>
-                                <p class="text-xs text-gray-500">Served 6:00 - 8:00 PM</p>
-                            </div>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="supper" class="sr-only peer" {{ today_supper_attr }} {{
-                                today_disabled_attr }}>
-                            <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
-                            </div>
-                        </label>
-                    </div>
-
-                    <div class="pt-2">
-                        <button type="submit" {{ today_disabled_attr }}
-                            class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition shadow-sm {% if is_away_today %}opacity-50 cursor-not-allowed{% endif %}">
-                            Update Today
-                        </button>
-                    </div>
-                </form>
             </div>
-        </div>
 
-        <!-- Tomorrow's Card -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden relative border border-slate-200">
-            <div class="bg-slate-700 p-5 flex justify-between items-center text-white">
-                <div class="flex items-center gap-3">
-                    <div class="bg-white/10 p-2 rounded backdrop-blur-sm">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h2 class="font-bold text-xl tracking-tight">Tomorrow</h2>
+            <!-- Quick Actions (Profile) -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-5">
+                <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="{% url 'hms:student_profile' %}"
+                        class="block p-3 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 transition text-sm font-medium">
+                        Upload Timetable
+                    </a>
+                    <a href="{% url 'hms:student_profile' %}"
+                        class="block p-3 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 transition text-sm font-medium">
+                        Select Room Number
+                    </a>
                 </div>
-                <span class="text-sm font-medium bg-white/10 px-3 py-1 rounded">{{ tomorrow|date:"M d" }}</span>
             </div>
 
-            <div class="p-6">
-                <!-- Similar form for tomorrow, but no lock -->
-                <form action="{% url 'hms:confirm_meals' %}" method="post" class="space-y-4">
-                    {% csrf_token %}
-                    <input type="hidden" name="date" value="{{ tomorrow|date:'Y-m-d' }}">
-
-                    <!-- Breakfast -->
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div class="flex items-center">
-                            <span
-                                class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-400 mr-3">
-                                🍳
-                            </span>
-                            <div>
-                                <h3 class="font-medium text-gray-900">Breakfast</h3>
-                            </div>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="breakfast" class="sr-only peer" {{ tomorrow_breakfast_attr }}
-                                {{ tomorrow_disabled_attr }}>
-                            <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
-                            </div>
-                        </label>
-                    </div>
-
-                    <!-- Early Breakfast Option -->
-                    <div class="flex items-center justify-between p-2 pl-14 -mt-2">
-                        <span class="text-xs text-gray-500">Need early breakfast?</span>
-                        <input type="checkbox" name="early" class="rounded text-indigo-600 focus:ring-indigo-500" {{
-                            tomorrow_early_attr }} {{ tomorrow_disabled_attr }}>
-                    </div>
-
-                    <!-- Supper -->
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div class="flex items-center">
-                            <span
-                                class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-400 mr-3">
-                                🥣
-                            </span>
-                            <div>
-                                <h3 class="font-medium text-gray-900">Supper</h3>
-                            </div>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="supper" class="sr-only peer" {{ tomorrow_supper_attr }} {{
-                                tomorrow_disabled_attr }}>
-                            <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
-                            </div>
-                        </label>
-                    </div>
-
-                    <div class="pt-2">
-                        <button type="submit" {{ tomorrow_disabled_attr }}
-                            class="w-full bg-gray-800 text-white font-bold py-2 px-4 rounded hover:bg-gray-900 transition shadow {% if is_away_tomorrow %}opacity-50 cursor-not-allowed{% endif %}">
-                            Update Tomorrow
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
-
     </div>
-
-    <!-- Away Mode Button -->
-    <div
-        class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between">
-        <div class="mb-4 md:mb-0">
-            <h3 class="font-bold text-slate-900">Going Away?</h3>
-            <p class="text-sm text-slate-700">Mark yourself as away to automatically cancel meals for a specific
-                period.</p>
-        </div>
-        <button onclick="document.getElementById('away-mode-modal').classList.remove('hidden')"
-            class="bg-white text-slate-700 border border-slate-300 font-bold py-2 px-6 rounded hover:bg-slate-50 hover:shadow-sm transition">
-            Set Away Mode
-        </button>
-    </div>
-
 </div>
 
-<!-- Away Mode Modal -->
-<div id="away-mode-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Set Away Period</h3>
-            <div class="mt-2 text-left">
-                <form action="{% url 'hms:toggle_away' %}" method="post">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="start_date">
-                            From Date
-                        </label>
-                        {{ away_form.start_date }}
+<!-- Away Mode Modal (Centered & Scroll Fix) -->
+<div id="away-mode-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+            onclick="document.getElementById('away-mode-modal').classList.add('hidden')"></div>
+
+        <!-- content -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div
+            class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div class="bg-white dark:bg-slate-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+                            Set Away Period
+                        </h3>
+                        <div class="mt-4">
+                            <form action="{% url 'hms:toggle_away' %}" method="post">
+                                {% csrf_token %}
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">From
+                                        Date</label>
+                                    <input type="date" name="start_date" min="{{ today|date:'Y-m-d' }}" required
+                                        class="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">To
+                                        Date</label>
+                                    <input type="date" name="end_date" min="{{ today|date:'Y-m-d' }}" required
+                                        class="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                                </div>
+                                <div class="flex justify-end gap-3">
+                                    <button type="button"
+                                        onclick="document.getElementById('away-mode-modal').classList.add('hidden')"
+                                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition">
+                                        Cancel
+                                    </button>
+                                    <button type="submit"
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition shadow">
+                                        Confirm
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="end_date">
-                            To Date
-                        </label>
-                        {{ away_form.end_date }}
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <button type="button"
-                            onclick="document.getElementById('away-mode-modal').classList.add('hidden')"
-                            class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Confirm
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
