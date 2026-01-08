@@ -1,0 +1,54 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}New Maintenance Request{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-8">
+        <h2
+            class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-500 to-cyan-500 dark:from-teal-400 dark:to-cyan-300 mb-6">
+            Submit Maintenance Request
+        </h2>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Issue Title</label>
+                {{ form.title }}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Priority Level</label>
+                    {{ form.priority }}
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Photo (Optional)</label>
+                    <div class="relative">
+                        {{ form.photo }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Detailed Description</label>
+                {{ form.description }}
+                <p class="text-xs text-slate-500 dark:text-slate-400">Please provide location (e.g., Room 101) and
+                    specific details.</p>
+            </div>
+
+            <div class="flex items-center gap-4 pt-4">
+                <button type="submit"
+                    class="flex-1 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform hover:-translate-y-1 transition duration-200">
+                    Submit Request
+                </button>
+                <a href="{% url 'hms:student_maintenance_list' %}"
+                    class="px-6 py-3 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

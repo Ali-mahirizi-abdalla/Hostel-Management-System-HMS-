@@ -4,8 +4,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Student, Meal, Activity, AwayPeriod, Announcement, Document, Message
-from .forms import StudentRegistrationForm, AwayModeForm, DocumentForm, TimetableForm, RoomSelectionForm, MessageForm
+from .models import (Student, Meal, Activity, AwayPeriod, Announcement, Document, Message, MaintenanceRequest,
+                     Room, RoomAssignment, RoomChangeRequest, LeaveRequest)
+from .forms import StudentRegistrationForm, AwayModeForm, DocumentForm, TimetableForm, RoomSelectionForm, MessageForm, MaintenanceRequestForm
 from datetime import date, datetime, time, timedelta
 from django.db import transaction, models
 from django.contrib.auth.models import User
@@ -805,3 +806,604 @@ def chat_view(request, recipient_id=None):
         'students': students
     }
     return render(request, 'hms/chat.html', context)
+
+# ==================== Maintenance Requests ====================
+
+@login_required
+def submit_maintenance_request(request):
+    """View for students to submit a maintenance ticket"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('hms:student_dashboard')
+
+    if request.method == 'POST':
+        form = MaintenanceRequestForm(request.POST, request.FILES)
+        if form.is_valid():
+            maintenance_request = form.save(commit=False)
+            maintenance_request.student = student
+            maintenance_request.save()
+            messages.success(request, 'Maintenance request submitted successfully!')
+            return redirect('hms:student_maintenance_list')
+    else:
+        form = MaintenanceRequestForm()
+    
+    return render(request, 'hms/student/maintenance_form.html', {'form': form})
+
+@login_required
+def student_maintenance_list(request):
+    """View for students to see their maintenance tickets"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+         return redirect('hms:student_dashboard')
+
+    requests = MaintenanceRequest.objects.filter(student=student).order_by('-created_at')
+    
+    return render(request, 'hms/student/maintenance_list.html', {'requests': requests})
+
+@login_required
+def manage_maintenance(request):
+    """Admin view to manage maintenance tickets"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+        
+    requests = MaintenanceRequest.objects.all().select_related('student__user').order_by(
+        models.Case(
+            models.When(status='pending', then=0),
+            models.When(status='in_progress', then=1),
+            models.When(status='resolved', then=2),
+            default=3,
+        ),
+        '-created_at'
+    )
+    
+    return render(request, 'hms/admin/maintenance_list.html', {'requests': requests})
+
+@login_required
+def update_maintenance_status(request, pk):
+    """Admin view to update status of a ticket"""
+    if not request.user.is_staff:
+         return redirect('hms:student_dashboard')
+         
+    maintenance_request = get_object_or_404(MaintenanceRequest, pk=pk)
+    
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        if status in dict(MaintenanceRequest.STATUS_CHOICES):
+            maintenance_request.status = status
+            maintenance_request.save()
+            messages.success(request, f"Status updated to {maintenance_request.get_status_display()}")
+        
+    return redirect('hms:manage_maintenance')
+
+
+# ==================== ROOM MANAGEMENT ====================
+
+@login_required
+def room_list(request):
+    """View all rooms (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    rooms = Room.objects.all().order_by('block', 'floor', 'room_number')
+    
+    # Filter by block if provided
+    block_filter = request.GET.get('block')
+    if block_filter:
+        rooms = rooms.filter(block__icontains=block_filter)
+    
+    # Filter by availability
+    availability = request.GET.get('availability')
+    if availability == 'available':
+        rooms = rooms.filter(is_available=True)
+    elif availability == 'occupied':
+        rooms = rooms.filter(is_available=False)
+    
+    context = {
+        'rooms': rooms,
+        'total_rooms': Room.objects.count(),
+        'available_rooms': Room.objects.filter(is_available=True).count(),
+        'occupied_rooms': Room.objects.filter(is_available=False).count(),
+    }
+    
+    return render(request, 'hms/admin/room_list.html', context)
+
+
+@login_required
+def create_room(request):
+    """Create a new room (admin only)"""
+    from .forms import RoomForm
+    
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    if request.method == 'POST':
+        form = RoomForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Room created successfully!')
+            return redirect('hms:room_list')
+    else:
+        form = RoomForm()
+    
+    return render(request, 'hms/admin/room_form.html', {'form': form, 'action': 'Create'})
+
+
+@login_required
+def edit_room(request, pk):
+    """Edit room details (admin only)"""
+    from .forms import RoomForm
+    
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    room = get_object_or_404(Room, pk=pk)
+    
+    if request.method == 'POST':
+        form = RoomForm(request.POST, instance=room)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Room updated successfully!')
+            return redirect('hms:room_list')
+    else:
+        form = RoomForm(instance=room)
+    
+    return render(request, 'hms/admin/room_form.html', {'form': form, 'action': 'Edit', 'room': room})
+
+
+@login_required
+def delete_room(request, pk):
+    """Delete a room (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    room = get_object_or_404(Room, pk=pk)
+    
+    if request.method == 'POST':
+        room.delete()
+        messages.success(request, f'Room {room.room_number} deleted successfully!')
+        return redirect('hms:room_list')
+    
+    return render(request, 'hms/admin/room_confirm_delete.html', {'room': room})
+
+
+@login_required
+def room_assignments(request):
+    """View all room assignments (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    assignments = RoomAssignment.objects.filter(is_active=True).select_related('student__user', 'room')
+    
+    context = {
+        'assignments': assignments,
+        'total_assigned': assignments.count(),
+    }
+    
+    return render(request, 'hms/admin/room_assignments.html', context)
+
+
+@login_required
+def assign_room(request):
+    """Assign a student to a room (admin only)"""
+    from .forms import RoomAssignmentForm
+    
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    if request.method == 'POST':
+        form = RoomAssignmentForm(request.POST)
+        if form.is_valid():
+            assignment = form.save(commit=False)
+            
+            # Check if room has available beds
+            room = assignment.room
+            if room.available_beds <= 0:
+                messages.error(request, f'Room {room.room_number} is full!')
+                return render(request, 'hms/admin/room_assignment_form.html', {'form': form})
+            
+            assignment.save()
+            
+            # Update student's room_number field
+            student = assignment.student
+            student.room_number = room.room_number
+            student.save()
+            
+            messages.success(request, f'{student.user.get_full_name()} assigned to Room {room.room_number}!')
+            return redirect('hms:room_assignments')
+    else:
+        form = RoomAssignmentForm()
+    
+    return render(request, 'hms/admin/room_assignment_form.html', {'form': form})
+
+
+@login_required
+def room_change_requests(request):
+    """View all room change requests (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    requests_list = RoomChangeRequest.objects.all().select_related('student__user', 'current_room', 'requested_room')
+    
+    context = {
+        'change_requests': requests_list,
+        'pending_count': requests_list.filter(status='pending').count(),
+    }
+    
+    return render(request, 'hms/admin/room_change_requests.html', context)
+
+
+@login_required
+def approve_room_change(request, pk):
+    """Approve/reject a room change request (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    room_change = get_object_or_404(RoomChangeRequest, pk=pk)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        if action == 'approve':
+            room_change.status = 'approved'
+            room_change.admin_notes = admin_notes
+            room_change.reviewed_by = request.user
+            room_change.save()
+            
+            # Create new assignment if there's a requested room
+            if room_change.requested_room:
+                # Deactivate old assignment
+                RoomAssignment.objects.filter(student=room_change.student, is_active=True).update(is_active=False, checkout_date=timezone.now().date())
+                
+                # Create new assignment
+                RoomAssignment.objects.create(
+                    student=room_change.student,
+                    room=room_change.requested_room,
+                    assigned_date=timezone.now().date(),
+                    is_active=True
+                )
+                
+                # Update student's room_number
+                room_change.student.room_number = room_change.requested_room.room_number
+                room_change.student.save()
+            
+            messages.success(request, f'Room change request approved for {room_change.student.user.get_full_name()}!')
+        
+        elif action == 'reject':
+            room_change.status = 'rejected'
+            room_change.admin_notes = admin_notes
+            room_change.reviewed_by = request.user
+            room_change.save()
+            messages.info(request, 'Room change request rejected.')
+        
+        return redirect('hms:room_change_requests')
+    
+    return render(request, 'hms/admin/approve_room_change.html', {'room_change': room_change})
+
+
+@login_required
+def student_request_room_change(request):
+    """Student submits a room change request"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('hms:student_dashboard')
+    
+    from .forms import RoomChangeRequestForm
+    
+    # Get student's current room
+    current_assignment = RoomAssignment.objects.filter(student=student, is_active=True).first()
+    
+    if request.method == 'POST':
+        form = RoomChangeRequestForm(request.POST)
+        if form.is_valid():
+            room_change = form.save(commit=False)
+            room_change.student = student
+            room_change.current_room = current_assignment.room if current_assignment else None
+            room_change.save()
+            
+            messages.success(request, 'Room change request submitted successfully!')
+            return redirect('hms:student_dashboard')
+    else:
+        form = RoomChangeRequestForm()
+    
+    context = {
+        'form': form,
+        'current_room': current_assignment.room if current_assignment else None,
+    }
+    
+    return render(request, 'hms/student/room_change_request_form.html', context)
+
+
+# ==================== LEAVE REQUESTS ====================
+
+@login_required
+def submit_leave_request(request):
+    """Student submits a leave request"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('hms:student_dashboard')
+    
+    from .forms import LeaveRequestForm
+    
+    if request.method == 'POST':
+        form = LeaveRequestForm(request.POST)
+        if form.is_valid():
+            leave_request = form.save(commit=False)
+            leave_request.student = student
+            leave_request.save()
+            
+            messages.success(request, 'Leave request submitted successfully! Awaiting approval.')
+            return redirect('hms:student_leave_list')
+    else:
+        form = LeaveRequestForm()
+    
+    return render(request, 'hms/student/leave_request_form.html', {'form': form})
+
+
+@login_required
+def student_leave_list(request):
+    """Student views their leave requests"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('hms:student_dashboard')
+    
+    leave_requests = LeaveRequest.objects.filter(student=student).order_by('-created_at')
+    
+    context = {
+        'leave_requests': leave_requests,
+        'pending_count': leave_requests.filter(status='pending').count(),
+    }
+    
+    return render(request, 'hms/student/leave_list.html', context)
+
+
+@login_required
+def manage_leave_requests(request):
+    """Admin views all leave requests"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    leave_requests = LeaveRequest.objects.all().select_related('student__user').order_by(
+        models.Case(
+            models.When(status='pending', then=0),
+            models.When(status='approved', then=1),
+            models.When(status='rejected', then=2),
+            default=3,
+        ),
+        '-created_at'
+    )
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        leave_requests = leave_requests.filter(status=status_filter)
+    
+    context = {
+        'leave_requests': leave_requests,
+        'pending_count': LeaveRequest.objects.filter(status='pending').count(),
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'hms/admin/leave_requests.html', context)
+
+
+@login_required
+def approve_leave_request(request, pk):
+    """Admin approves/rejects a leave request"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    from .forms import LeaveApprovalForm
+    
+    leave_request = get_object_or_404(LeaveRequest, pk=pk)
+    
+    if request.method == 'POST':
+        form = LeaveApprovalForm(request.POST, instance=leave_request)
+        if form.is_valid():
+            leave_req = form.save(commit=False)
+            leave_req.reviewed_by = request.user
+            leave_req.reviewed_at = timezone.now()
+            leave_req.save()
+            
+            # If approved, create AwayPeriod automatically
+            if leave_req.status == 'approved':
+                AwayPeriod.objects.create(
+                    student=leave_req.student,
+                    start_date=leave_req.start_date,
+                    end_date=leave_req.end_date
+                )
+                messages.success(request, f'Leave request approved for {leave_req.student.user.get_full_name()}. Away period created.')
+            else:
+                messages.info(request, f'Leave request updated to {leave_req.get_status_display()}.')
+            
+            return redirect('hms:manage_leave_requests')
+    else:
+        form = LeaveApprovalForm(instance=leave_request)
+    
+    return render(request, 'hms/admin/approve_leave.html', {'form': form, 'leave_request': leave_request})
+
+
+# ==================== ANALYTICS DASHBOARD ====================
+
+@login_required
+def analytics_dashboard(request):
+    """Comprehensive analytics dashboard for admins"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    import json
+    from django.db.models import Count, Q
+    from django.db.models.functions import TruncDate
+    
+    today = date.today()
+    week_start = today - timedelta(days=6)
+    month_start = today - timedelta(days=29)
+    
+    # ==================== SUMMARY STATS ====================
+    total_students = Student.objects.count()
+    total_rooms = Room.objects.count()
+    available_rooms = Room.objects.filter(is_available=True).count()
+    
+    # Today's meal stats
+    today_meals = Meal.objects.filter(date=today)
+    today_breakfast = today_meals.filter(breakfast=True).count()
+    today_supper = today_meals.filter(supper=True).count()
+    today_away = today_meals.filter(away=True).count()
+    today_confirmed = today_meals.count()
+    
+    # Active leave requests
+    active_leaves = LeaveRequest.objects.filter(
+        status='approved',
+        start_date__lte=today,
+        end_date__gte=today
+    ).count()
+    
+    # Pending items
+    pending_maintenance = MaintenanceRequest.objects.filter(status='pending').count()
+    pending_leaves = LeaveRequest.objects.filter(status='pending').count()
+    
+    # ==================== WEEKLY MEAL TRENDS ====================
+    weekly_labels = []
+    weekly_breakfast = []
+    weekly_supper = []
+    weekly_early = []
+    weekly_away = []
+    
+    for i in range(7):
+        d = week_start + timedelta(days=i)
+        weekly_labels.append(d.strftime('%a'))
+        stats = Meal.objects.filter(date=d).aggregate(
+            breakfast=Count('id', filter=Q(breakfast=True)),
+            supper=Count('id', filter=Q(supper=True)),
+            early=Count('id', filter=Q(early=True)),
+            away=Count('id', filter=Q(away=True)),
+        )
+        weekly_breakfast.append(stats['breakfast'] or 0)
+        weekly_supper.append(stats['supper'] or 0)
+        weekly_early.append(stats['early'] or 0)
+        weekly_away.append(stats['away'] or 0)
+    
+    # ==================== MONTHLY TRENDS ====================
+    monthly_labels = []
+    monthly_breakfast = []
+    monthly_supper = []
+    
+    for i in range(30):
+        d = month_start + timedelta(days=i)
+        monthly_labels.append(d.strftime('%m/%d'))
+        stats = Meal.objects.filter(date=d).aggregate(
+            breakfast=Count('id', filter=Q(breakfast=True)),
+            supper=Count('id', filter=Q(supper=True)),
+        )
+        monthly_breakfast.append(stats['breakfast'] or 0)
+        monthly_supper.append(stats['supper'] or 0)
+    
+    # ==================== MAINTENANCE STATS ====================
+    maintenance_by_status = {
+        'pending': MaintenanceRequest.objects.filter(status='pending').count(),
+        'in_progress': MaintenanceRequest.objects.filter(status='in_progress').count(),
+        'resolved': MaintenanceRequest.objects.filter(status='resolved').count(),
+    }
+    
+    maintenance_by_priority = {
+        'low': MaintenanceRequest.objects.filter(priority='low').count(),
+        'medium': MaintenanceRequest.objects.filter(priority='medium').count(),
+        'high': MaintenanceRequest.objects.filter(priority='high').count(),
+        'critical': MaintenanceRequest.objects.filter(priority='critical').count(),
+    }
+    
+    # ==================== LEAVE REQUEST STATS ====================
+    leave_by_status = {
+        'pending': LeaveRequest.objects.filter(status='pending').count(),
+        'approved': LeaveRequest.objects.filter(status='approved').count(),
+        'rejected': LeaveRequest.objects.filter(status='rejected').count(),
+    }
+    
+    leave_by_type = {}
+    for leave_type_code, leave_type_name in LeaveRequest.LEAVE_TYPES:
+        leave_by_type[leave_type_name] = LeaveRequest.objects.filter(leave_type=leave_type_code).count()
+    
+    # ==================== ROOM OCCUPANCY ====================
+    room_stats = {
+        'total': total_rooms,
+        'available': available_rooms,
+        'occupied': total_rooms - available_rooms,
+        'occupancy_rate': round((total_rooms - available_rooms) / total_rooms * 100, 1) if total_rooms > 0 else 0
+    }
+    
+    # Room by type
+    room_by_type = {}
+    for room_type_code, room_type_name in Room.ROOM_TYPES:
+        room_by_type[room_type_name] = Room.objects.filter(room_type=room_type_code).count()
+    
+    # ==================== RECENT ACTIVITY ====================
+    recent_maintenance = MaintenanceRequest.objects.select_related('student__user').order_by('-created_at')[:5]
+    recent_leaves = LeaveRequest.objects.select_related('student__user').order_by('-created_at')[:5]
+    recent_announcements = Announcement.objects.order_by('-created_at')[:5]
+    
+    # ==================== CHART DATA JSON ====================
+    chart_data = {
+        'weekly': {
+            'labels': weekly_labels,
+            'breakfast': weekly_breakfast,
+            'supper': weekly_supper,
+            'early': weekly_early,
+            'away': weekly_away,
+        },
+        'monthly': {
+            'labels': monthly_labels,
+            'breakfast': monthly_breakfast,
+            'supper': monthly_supper,
+        },
+        'maintenance_status': maintenance_by_status,
+        'maintenance_priority': maintenance_by_priority,
+        'leave_status': leave_by_status,
+        'room_occupancy': room_stats,
+    }
+    
+    context = {
+        'today': today,
+        # Summary stats
+        'total_students': total_students,
+        'today_breakfast': today_breakfast,
+        'today_supper': today_supper,
+        'today_away': today_away,
+        'today_confirmed': today_confirmed,
+        'active_leaves': active_leaves,
+        'pending_maintenance': pending_maintenance,
+        'pending_leaves': pending_leaves,
+        # Room stats
+        'room_stats': room_stats,
+        'room_by_type': room_by_type,
+        # Recent activity
+        'recent_maintenance': recent_maintenance,
+        'recent_leaves': recent_leaves,
+        'recent_announcements': recent_announcements,
+        # Chart data
+        'chart_data_json': json.dumps(chart_data),
+        'leave_by_type': leave_by_type,
+    }
+    
+    return render(request, 'hms/admin/analytics_dashboard.html', context)
+

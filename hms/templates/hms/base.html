@@ -64,6 +64,45 @@
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
                     </a>
+
+                    <!-- Maintenance Link -->
+                    {% if user.is_staff %}
+                    <a href="{% url 'hms:manage_maintenance' %}"
+                        class="font-medium text-lg text-white hover:text-white/70 transition relative group">
+                        Maintenance
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+                    </a>
+                    <!-- Leave Requests -->
+                    <a href="{% url 'hms:manage_leave_requests' %}"
+                        class="font-medium text-lg text-white hover:text-white/70 transition relative group">
+                        Leave
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+                    </a>
+                    <!-- Analytics -->
+                    <a href="{% url 'hms:analytics_dashboard' %}"
+                        class="font-medium text-lg text-white hover:text-white/70 transition relative group">
+                        Analytics
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'hms:student_maintenance_list' %}"
+                        class="font-medium text-lg text-white hover:text-white/70 transition relative group">
+                        Maintenance
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+                    </a>
+                    <!-- Student Leave -->
+                    <a href="{% url 'hms:student_leave_list' %}"
+                        class="font-medium text-lg text-white hover:text-white/70 transition relative group">
+                        Leave
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
+                    </a>
+                    {% endif %}
+
                     <a href="{% url 'hms:student_profile' %}"
                         class="font-medium text-lg text-white hover:text-white/70 transition relative group">
                         Profile
@@ -102,6 +141,15 @@
                 {% if user.is_authenticated %}
                 <a href="{% url 'hms:student_dashboard' %}"
                     class="block py-2 text-lg text-white hover:text-white/70">Dashboard</a>
+
+                {% if user.is_staff %}
+                <a href="{% url 'hms:manage_maintenance' %}"
+                    class="block py-2 text-lg text-white hover:text-white/70">Maintenance</a>
+                {% else %}
+                <a href="{% url 'hms:student_maintenance_list' %}"
+                    class="block py-2 text-lg text-white hover:text-white/70">Maintenance</a>
+                {% endif %}
+
                 <a href="{% url 'hms:student_profile' %}"
                     class="block py-2 text-lg text-white hover:text-white/70">Profile</a>
                 <form action="{% url 'hms:logout' %}" method="post">
@@ -201,7 +249,7 @@
                 html.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
             });
-            
+
             // Auto-dismiss messages
             setTimeout(() => {
                 const alerts = document.querySelectorAll('.border-l-4'); // Selector for message cards

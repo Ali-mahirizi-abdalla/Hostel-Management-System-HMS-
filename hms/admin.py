@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Student, Meal, Activity, AwayPeriod, Announcement
+from .models import (Student, Meal, Activity, AwayPeriod, Announcement, 
+                     MaintenanceRequest, Room, RoomAssignment, RoomChangeRequest, LeaveRequest)
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -28,3 +29,37 @@ class AnnouncementAdmin(admin.ModelAdmin):
     list_filter = ('priority', 'is_active', 'created_at')
     search_fields = ('title', 'content')
 
+
+@admin.register(MaintenanceRequest)
+class MaintenanceRequestAdmin(admin.ModelAdmin):
+    list_display = ('title', 'student', 'priority', 'status', 'created_at')
+    list_filter = ('priority', 'status', 'created_at')
+    search_fields = ('title', 'description', 'student__user__username')
+
+
+@admin.register(Room)
+class RoomAdmin(admin.ModelAdmin):
+    list_display = ('room_number', 'floor', 'block', 'room_type', 'capacity', 'current_occupancy', 'is_available')
+    list_filter = ('floor', 'block', 'room_type', 'is_available')
+    search_fields = ('room_number', 'block')
+
+
+@admin.register(RoomAssignment)
+class RoomAssignmentAdmin(admin.ModelAdmin):
+    list_display = ('student', 'room', 'bed_number', 'assigned_date', 'is_active')
+    list_filter = ('is_active', 'assigned_date')
+    search_fields = ('student__user__username', 'room__room_number')
+
+
+@admin.register(RoomChangeRequest)
+class RoomChangeRequestAdmin(admin.ModelAdmin):
+    list_display = ('student', 'current_room', 'requested_room', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('student__user__username', 'reason')
+
+
+@admin.register(LeaveRequest)
+class LeaveRequestAdmin(admin.ModelAdmin):
+    list_display = ('student', 'leave_type', 'start_date', 'end_date', 'status', 'duration_days')
+    list_filter = ('leave_type', 'status', 'start_date')
+    search_fields = ('student__user__username', 'reason', 'destination')

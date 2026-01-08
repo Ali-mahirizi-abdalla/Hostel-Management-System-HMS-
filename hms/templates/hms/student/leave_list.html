@@ -1,0 +1,164 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}My Leave Requests{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div
+        class="flex justify-between items-center bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+        <div>
+            <h1
+                class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">
+                My Leave Requests
+            </h1>
+            <p class="text-slate-600 dark:text-slate-400 mt-1">Track your leave applications and their status</p>
+        </div>
+        <a href="{% url 'hms:submit_leave_request' %}"
+            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform hover:-translate-y-1 transition duration-200 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6">
+                </path>
+            </svg>
+            New Leave Request
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div
+            class="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 p-4 rounded-xl border border-yellow-200 dark:border-yellow-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-yellow-600 dark:text-yellow-400 text-sm font-medium">Pending</p>
+                    <p class="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{{ pending_count }}</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div
+            class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-600 dark:text-green-400 text-sm font-medium">Approved</p>
+                    <p class="text-2xl font-bold text-green-700 dark:text-green-300">{{ leave_requests|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div
+            class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm font-medium">Total Requests</p>
+                    <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ leave_requests|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Requests List -->
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
+        {% if leave_requests %}
+        <div class="divide-y divide-slate-200 dark:divide-slate-700">
+            {% for leave in leave_requests %}
+            <div class="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="font-semibold text-slate-900 dark:text-white">{{ leave.get_leave_type_display }}
+                            </h3>
+                            <span
+                                class="px-3 py-1 rounded-full text-xs font-bold
+                                {% if leave.status == 'pending' %}bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700
+                                {% elif leave.status == 'approved' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700
+                                {% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-700{% endif %}">
+                                {% if leave.status == 'pending' %}🟡{% elif leave.status == 'approved' %}✅{% else %}❌{%
+                                endif %}
+                                {{ leave.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                    </path>
+                                </svg>
+                                {{ leave.destination }}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{ leave.duration_days }} days
+                            </span>
+                        </div>
+                        <p class="text-sm text-slate-500 dark:text-slate-500 mt-2 line-clamp-2">{{ leave.reason }}</p>
+                        {% if leave.admin_notes %}
+                        <div
+                            class="mt-3 p-3 bg-slate-100 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">Admin Notes:</p>
+                            <p class="text-sm text-slate-700 dark:text-slate-300">{{ leave.admin_notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="text-right text-sm text-slate-500 dark:text-slate-400">
+                        <p>Submitted</p>
+                        <p class="font-medium text-slate-700 dark:text-slate-300">{{ leave.created_at|date:"M d, Y" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+            <svg class="w-16 h-16 text-slate-400 dark:text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                </path>
+            </svg>
+            <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">No Leave Requests Yet</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6">You haven't submitted any leave requests.</p>
+            <a href="{% url 'hms:submit_leave_request' %}"
+                class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform hover:-translate-y-1 transition duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Submit Your First Request
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

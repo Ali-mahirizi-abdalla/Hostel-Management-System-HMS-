@@ -112,3 +112,164 @@ class Message(models.Model):
 
     def __str__(self):
         return f"From {self.sender} to {self.recipient}"
+
+
+class MaintenanceRequest(models.Model):
+    """Maintenance tickets submitted by students"""
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='maintenance_requests')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    photo = models.ImageField(upload_to='maintenance_photos/', blank=True, null=True)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.student} ({self.get_status_display()})"
+
+
+class Room(models.Model):
+    """Hostel room information"""
+    ROOM_TYPES = [
+        ('single', 'Single'),
+        ('double', 'Double'),
+        ('triple', 'Triple'),
+        ('quad', 'Quad'),
+    ]
+    
+    room_number = models.CharField(max_length=10, unique=True)
+    floor = models.IntegerField()
+    block = models.CharField(max_length=50, blank=True)
+    room_type = models.CharField(max_length=20, choices=ROOM_TYPES, default='double')
+    capacity = models.IntegerField(default=2)
+    is_available = models.BooleanField(default=True)
+    amenities = models.TextField(blank=True, help_text="List amenities (e.g., AC, attached bathroom)")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['block', 'floor', 'room_number']
+    
+    def __str__(self):
+        return f"Room {self.room_number} - {self.get_room_type_display()}"
+    
+    @property
+    def current_occupancy(self):
+        """Get current number of students in the room"""
+        return self.assignments.filter(is_active=True).count()
+    
+    @property
+    def available_beds(self):
+        """Get number of available beds"""
+        return self.capacity - self.current_occupancy
+
+
+class RoomAssignment(models.Model):
+    """Track room assignments for students"""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='room_assignments')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='assignments')
+    bed_number = models.IntegerField(null=True, blank=True)
+    assigned_date = models.DateField(default=timezone.now)
+    checkout_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-assigned_date']
+    
+    def __str__(self):
+        return f"{self.student} - {self.room} (Bed {self.bed_number})"
+
+
+class RoomChangeRequest(models.Model):
+    """Student requests for room changes"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='room_change_requests')
+    current_room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, related_name='change_requests_from')
+    requested_room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, blank=True, related_name='change_requests_to')
+    reason = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_room_changes')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.student} - Room Change Request ({self.get_status_display()})"
+
+
+class LeaveRequest(models.Model):
+    """Leave applications from students"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    LEAVE_TYPES = [
+        ('home', 'Going Home'),
+        ('medical', 'Medical Leave'),
+        ('emergency', 'Emergency'),
+        ('other', 'Other'),
+    ]
+    
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='leave_requests')
+    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPES, default='home')
+    start_date = models.DateField()
+    end_date = models.DateField()
+    reason = models.TextField()
+    contact_during_leave = models.CharField(max_length=15, blank=True, help_text="Phone number during leave")
+    destination = models.CharField(max_length=200, blank=True)
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_leaves')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.student} - Leave ({self.start_date} to {self.end_date})"
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.start_date > self.end_date:
+            raise ValidationError("End date must be after start date.")
+    
+    @property
+    def duration_days(self):
+        """Calculate leave duration in days"""
+        return (self.end_date - self.start_date).days + 1

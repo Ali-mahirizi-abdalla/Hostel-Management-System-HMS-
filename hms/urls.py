@@ -48,6 +48,32 @@ urlpatterns = [
     path('chat/', views.chat_view, name='chat'),
     path('chat/<int:recipient_id>/', views.chat_view, name='chat_with'),
 
+    # Maintenance
+    path('student/maintenance/', views.student_maintenance_list, name='student_maintenance_list'),
+    path('student/maintenance/create/', views.submit_maintenance_request, name='submit_maintenance_request'),
+    path('manage/maintenance/', views.manage_maintenance, name='manage_maintenance'),
+    path('manage/maintenance/update/<int:pk>/', views.update_maintenance_status, name='update_maintenance_status'),
+
+    # Leave Requests
+    path('student/leave/', views.student_leave_list, name='student_leave_list'),
+    path('student/leave/create/', views.submit_leave_request, name='submit_leave_request'),
+    path('manage/leave/', views.manage_leave_requests, name='manage_leave_requests'),
+    path('manage/leave/approve/<int:pk>/', views.approve_leave_request, name='approve_leave_request'),
+
+    # Room Management
+    path('manage/rooms/', views.room_list, name='room_list'),
+    path('manage/rooms/create/', views.create_room, name='create_room'),
+    path('manage/rooms/edit/<int:pk>/', views.edit_room, name='edit_room'),
+    path('manage/rooms/delete/<int:pk>/', views.delete_room, name='delete_room'),
+    path('manage/rooms/assignments/', views.room_assignments, name='room_assignments'),
+    path('manage/rooms/assign/', views.assign_room, name='assign_room'),
+    path('manage/rooms/change-requests/', views.room_change_requests, name='room_change_requests'),
+    path('manage/rooms/change-requests/approve/<int:pk>/', views.approve_room_change, name='approve_room_change'),
+    path('student/room-change/', views.student_request_room_change, name='student_request_room_change'),
+
+    # Analytics Dashboard
+    path('manage/analytics/', views.analytics_dashboard, name='analytics_dashboard'),
+
     
     # Password Reset
     # Explicitly defining these to ensure they are available
