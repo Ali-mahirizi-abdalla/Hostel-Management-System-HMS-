@@ -228,6 +228,28 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Hostel Highlights -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 mt-8">
+                <h3 class="text-xl font-bold mb-4 text-slate-800 dark:text-white border-b pb-2">Hostel Highlights</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="relative group overflow-hidden rounded-lg shadow-sm">
+                        <img src="{% static 'img/dashboard_1.jpg' %}" alt="Hostel Feature 1"
+                            class="w-full h-48 object-cover transform group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                            <p class="text-white font-medium p-3">Comfortable Living</p>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-lg shadow-sm">
+                        <img src="{% static 'img/dashboard_2.jpg' %}" alt="Hostel Feature 2"
+                            class="w-full h-48 object-cover transform group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                            <p class="text-white font-medium p-3">Modern Amenities</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Activities, Away, Quick Actions -->

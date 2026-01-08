@@ -85,7 +85,7 @@
     /* Overrides */
     --overlay-opacity: 0.5;
     --input-bg: #ffffff;
-    --navbar-bg: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+    --navbar-bg: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
 }
 
 * {
