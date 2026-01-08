@@ -22,7 +22,7 @@ class Student(models.Model):
 class Meal(models.Model):
     """Daily meal submission"""
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='meals')
-    date = models.DateField(default=timezone.now)
+    date = models.DateField(default=datetime.date.today)
     breakfast = models.BooleanField(default=False)
     early = models.BooleanField(default=False) # Early breakfast
     supper = models.BooleanField(default=False)
@@ -186,7 +186,7 @@ class RoomAssignment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='room_assignments')
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='assignments')
     bed_number = models.IntegerField(null=True, blank=True)
-    assigned_date = models.DateField(default=timezone.now)
+    assigned_date = models.DateField(default=datetime.date.today)
     checkout_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)

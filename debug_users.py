@@ -5,7 +5,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Hostel_System.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from hms.models import StudentProfile
+from hms.models import Student
 
 print("--- Users ---")
 for user in User.objects.all():

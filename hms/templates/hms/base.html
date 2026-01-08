@@ -28,8 +28,8 @@
 
 
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 transition-all duration-300 border-b border-white/20 text-white shadow-lg"
-        style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+    <nav
+        class="sticky top-0 z-50 transition-all duration-300 border-b border-white/20 text-white shadow-lg bg-gradient-to-r from-indigo-600 to-violet-600">
         <div class="container mx-auto px-4 max-w-7xl">
             <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
@@ -257,9 +257,11 @@
                 const nav = document.querySelector('nav');
                 if (window.scrollY > 20) {
                     nav.classList.add('shadow-xl', 'bg-gray-900/95');
+                    nav.classList.remove('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600');
                     nav.style.backdropFilter = "blur(20px)";
                 } else {
                     nav.classList.remove('shadow-xl', 'bg-gray-900/95');
+                    nav.classList.add('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600');
                     nav.style.backdropFilter = "blur(12px)";
                 }
             });

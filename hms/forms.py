@@ -125,8 +125,16 @@ class RoomSelectionForm(forms.ModelForm):
         model = Student
         fields = ['room_number']
         widgets = {
-            'room_number': forms.Select(choices=[(str(i), str(i)) for i in range(1, 51)], attrs={'class': 'w-full p-2 border rounded'}),
+             'room_number': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get available rooms
+        rooms = Room.objects.filter(is_available=True).order_by('room_number')
+        # Create choices list: (room_number, room_string_representation)
+        choices = [('', 'Select Room')] + [(r.room_number, f"Room {r.room_number} ({r.get_room_type_display()})") for r in rooms]
+        self.fields['room_number'].widget.choices = choices
 
 class MessageForm(forms.ModelForm):
     class Meta:

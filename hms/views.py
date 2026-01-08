@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
@@ -165,9 +165,15 @@ def student_profile(request):
     # Get recent meal history
     meal_history = student.meals.all().order_by('-date')[:10]
     
+    # Forms
+    room_form = RoomSelectionForm(instance=student)
+    timetable_form = TimetableForm(instance=student)
+
     context = {
         'student': student,
-        'meal_history': meal_history
+        'meal_history': meal_history,
+        'room_form': room_form,
+        'timetable_form': timetable_form
     }
     return render(request, 'hms/student/profile.html', context)
 
@@ -755,8 +761,45 @@ def select_room(request):
     if request.method == 'POST':
         form = RoomSelectionForm(request.POST, instance=student)
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Room {student.room_number} selected.")
+            room_number = form.cleaned_data['room_number']
+            
+            # Find the room object
+            try:
+                room = Room.objects.get(room_number=room_number)
+                
+                # Check if already assigned to this room
+                if student.room_number == room_number:
+                    messages.info(request, f"You are already in Room {room_number}.")
+                    return redirect('hms:student_profile')
+
+                # Check availability (double check)
+                if not room.is_available:
+                     messages.error(request, f"Room {room_number} is not available.")
+                     return redirect('hms:student_profile')
+                     
+                # Create Room Assignment
+                # First, end any active assignments
+                RoomAssignment.objects.filter(student=student, is_active=True).update(is_active=False, checkout_date=timezone.now())
+                
+                # Create new assignment
+                RoomAssignment.objects.create(
+                    student=student,
+                    room=room,
+                    bed_number=1, # Defaulting to 1 for now, logic can be enhanced
+                    is_active=True
+                )
+                
+                # Update student profile for display
+                student.room_number = room_number
+                student.save()
+                
+                messages.success(request, f"Successfully assigned to Room {room_number}.")
+                
+            except Room.DoesNotExist:
+                messages.error(request, "Selected room does not exist.")
+        else:
+            messages.error(request, "Invalid room selection.")
+            
     return redirect('hms:student_profile')
 
 @login_required
