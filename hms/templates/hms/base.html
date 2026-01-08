@@ -145,9 +145,13 @@
                 {% if user.is_staff %}
                 <a href="{% url 'hms:manage_maintenance' %}"
                     class="block py-2 text-lg text-white hover:text-white/70">Maintenance</a>
+                <a href="{% url 'hms:manage_leave_requests' %}"
+                    class="block py-2 text-lg text-white hover:text-white/70">Leave Requests</a>
                 {% else %}
                 <a href="{% url 'hms:student_maintenance_list' %}"
                     class="block py-2 text-lg text-white hover:text-white/70">Maintenance</a>
+                <a href="{% url 'hms:student_leave_list' %}"
+                    class="block py-2 text-lg text-white hover:text-white/70">Leave Requests</a>
                 {% endif %}
 
                 <a href="{% url 'hms:student_profile' %}"
