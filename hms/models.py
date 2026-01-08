@@ -273,3 +273,29 @@ class LeaveRequest(models.Model):
     def duration_days(self):
         """Calculate leave duration in days"""
         return (self.end_date - self.start_date).days + 1
+
+
+class Visitor(models.Model):
+    """Visitor logbook for hostel security"""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='visitors')
+    name = models.CharField(max_length=200)
+    phone = models.CharField(max_length=15, blank=True)
+    id_number = models.CharField(max_length=50, blank=True, help_text="National ID or Passport Number")
+    
+    check_in_time = models.DateTimeField(default=timezone.now)
+    check_out_time = models.DateTimeField(null=True, blank=True)
+    purpose = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='registered_visitors')
+    
+    class Meta:
+        ordering = ['-check_in_time']
+    
+    def __str__(self):
+        return f"{self.name} visiting {self.student}"
+    
+    def check_out(self):
+        self.check_out_time = timezone.now()
+        self.is_active = False
+        self.save()

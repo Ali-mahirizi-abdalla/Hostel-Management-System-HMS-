@@ -5,8 +5,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from .models import (Student, Meal, Activity, AwayPeriod, Announcement, Document, Message, MaintenanceRequest,
-                     Room, RoomAssignment, RoomChangeRequest, LeaveRequest)
-from .forms import StudentRegistrationForm, AwayModeForm, DocumentForm, TimetableForm, RoomSelectionForm, MessageForm, MaintenanceRequestForm
+                     Room, RoomAssignment, RoomChangeRequest, LeaveRequest, Visitor)
+from .forms import (
+    StudentRegistrationForm, AwayModeForm, ActivityForm, DocumentForm, 
+    TimetableForm, RoomSelectionForm, MessageForm, MaintenanceRequestForm,
+    MaintenanceStatusForm, RoomForm, RoomAssignmentForm, RoomChangeRequestForm,
+    LeaveRequestForm, LeaveApprovalForm, VisitorForm
+)
 from datetime import date, datetime, time, timedelta
 from django.db import transaction, models
 from django.contrib.auth.models import User
@@ -673,13 +678,18 @@ def create_announcement(request):
         content = request.POST.get('content')
         priority = request.POST.get('priority', 'normal')
         
-        Announcement.objects.create(
+        announcement = Announcement.objects.create(
             title=title,
             content=content,
             priority=priority,
             created_by=request.user
         )
-        messages.success(request, 'Announcement created successfully!')
+        
+        # Send notifications
+        from .notifications import notify_new_announcement
+        notify_new_announcement(announcement)
+        
+        messages.success(request, 'Announcement created successfully and notifications sent!')
         return redirect('hms:manage_announcements')
     
     return render(request, 'hms/admin/announcement_form.html')
@@ -875,6 +885,11 @@ def update_maintenance_status(request, pk):
         if status in dict(MaintenanceRequest.STATUS_CHOICES):
             maintenance_request.status = status
             maintenance_request.save()
+            
+            # Send notification
+            from .notifications import notify_maintenance_status_update
+            notify_maintenance_status_update(maintenance_request)
+            
             messages.success(request, f"Status updated to {maintenance_request.get_status_display()}")
         
     return redirect('hms:manage_maintenance')
@@ -1148,6 +1163,10 @@ def submit_leave_request(request):
             leave_request.student = student
             leave_request.save()
             
+            # Notify admin
+            from .notifications import notify_leave_request_submitted
+            notify_leave_request_submitted(leave_request)
+            
             messages.success(request, 'Leave request submitted successfully! Awaiting approval.')
             return redirect('hms:student_leave_list')
     else:
@@ -1235,6 +1254,10 @@ def approve_leave_request(request, pk):
                 messages.success(request, f'Leave request approved for {leave_req.student.user.get_full_name()}. Away period created.')
             else:
                 messages.info(request, f'Leave request updated to {leave_req.get_status_display()}.')
+            
+            # Notify student
+            from .notifications import notify_leave_request_status
+            notify_leave_request_status(leave_req)
             
             return redirect('hms:manage_leave_requests')
     else:
@@ -1407,3 +1430,54 @@ def analytics_dashboard(request):
     
     return render(request, 'hms/admin/analytics_dashboard.html', context)
 
+
+@login_required
+def visitor_management(request):
+    """View to list active visitors and check them in/out"""
+    # Only staff can manage visitors
+    if not request.user.is_staff and not request.user.student_profile.is_warden:
+        messages.error(request, "You do not have permission to access visitor management.")
+        return redirect('hms:student_dashboard')
+    
+    # Handle Check-In Form Submission
+    if request.method == 'POST':
+        form = VisitorForm(request.POST)
+        if form.is_valid():
+            visitor = form.save(commit=False)
+            visitor.created_by = request.user
+            visitor.save()
+            messages.success(request, f"Visitor {visitor.name} checked in successfully.")
+            return redirect('hms:visitor_management')
+    else:
+        form = VisitorForm()
+    
+    # Get active visitors
+    active_visitors = Visitor.objects.filter(is_active=True).order_by('-check_in_time')
+    
+    # Get recent history (limited to 50 for performance)
+    visitor_history = Visitor.objects.filter(is_active=False).order_by('-check_out_time')[:50]
+    
+    context = {
+        'form': form,
+        'active_visitors': active_visitors,
+        'visitor_history': visitor_history,
+    }
+    
+    return render(request, 'hms/admin/visitor_management.html', context)
+
+@login_required
+def checkout_visitor(request, visitor_id):
+    """View to check out a visitor"""
+    if not request.user.is_staff and not request.user.student_profile.is_warden:
+        messages.error(request, "Permission denied.")
+        return redirect('hms:student_dashboard')
+        
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    
+    if visitor.is_active:
+        visitor.check_out()
+        messages.success(request, f"Visitor {visitor.name} has been checked out.")
+    else:
+        messages.warning(request, "Visitor is already checked out.")
+        
+    return redirect('hms:visitor_management')

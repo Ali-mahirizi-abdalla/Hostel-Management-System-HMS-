@@ -1,0 +1,167 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}Visitor Management - HMS{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row min-h-screen -mt-8 -mx-4">
+    <!-- Sidebar Navigation (Same as Admin Dashboard) -->
+    <aside class="hidden md:flex flex-col w-64 text-white p-6 sticky top-20 h-[calc(100vh-5rem)]"
+        style="background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);">
+        <h2 class="text-xl font-bold mb-8 text-white">Admin Panel</h2>
+        <nav class="space-y-4 flex-grow">
+            <a href="{% url 'hms:admin_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                    </path>
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'hms:visitor_management' %}"
+                class="flex items-center gap-3 px-4 py-3 bg-white/20 text-white rounded-xl border border-white/30 shadow-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+                Visitor Log
+            </a>
+            <!-- Back to Dashboard -->
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+        <div class="mb-8 p-8 rounded-2xl shadow-lg bg-indigo-600 text-white">
+            <h1 class="text-3xl font-bold mb-2">Visitor Logbook</h1>
+            <p class="text-white/90">Manage visitor check-ins and check-outs.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Check-In Form -->
+            <div class="glass-card p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white border-b pb-2">Check In Visitor</h3>
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select
+                            Student</label>
+                        {{ form.student }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Visitor
+                            Name</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone
+                            Number</label>
+                        {{ form.phone }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ID /
+                            Passport</label>
+                        {{ form.id_number }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Purpose of
+                            Visit</label>
+                        {{ form.purpose }}
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow transition">
+                        Check In Visitor
+                    </button>
+                </form>
+            </div>
+
+            <!-- Active Visitors List -->
+            <div class="lg:col-span-2 space-y-8">
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 bg-green-900/10 border-b border-green-900/20 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-green-800 dark:text-green-300">Currently Active Visitors</h3>
+                        <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">{{
+                            active_visitors|length }} Active</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead
+                                class="bg-gray-50 dark:bg-slate-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase">
+                                <tr>
+                                    <th class="p-4">Visitor</th>
+                                    <th class="p-4">Visiting</th>
+                                    <th class="p-4">Time In</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
+                                {% for visitor in active_visitors %}
+                                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition">
+                                    <td class="p-4">
+                                        <p class="font-medium text-gray-900 dark:text-white">{{ visitor.name }}</p>
+                                        <p class="text-xs text-gray-500">{{ visitor.phone }}</p>
+                                    </td>
+                                    <td class="p-4">
+                                        <p class="text-sm text-gray-900 dark:text-white">{{
+                                            visitor.student.user.get_full_name }}</p>
+                                        <p class="text-xs text-gray-500">{{ visitor.student.room_number|default:"No
+                                            Room" }}</p>
+                                    </td>
+                                    <td class="p-4 text-sm text-gray-600 dark:text-gray-300">
+                                        {{ visitor.check_in_time|date:"g:i A" }}
+                                        <span class="text-xs text-gray-400 block">{{ visitor.check_in_time|timesince }}
+                                            ago</span>
+                                    </td>
+                                    <td class="p-4">
+                                        <a href="{% url 'hms:checkout_visitor' visitor.id %}"
+                                            class="inline-block bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-full text-xs font-bold transition">
+                                            Check Out
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="p-8 text-center text-gray-500 italic">No visitors currently
+                                        inside.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent History -->
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 dark:border-slate-700">
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-white">Recent Log History</h3>
+                    </div>
+                    <div class="max-h-60 overflow-y-auto">
+                        <table class="w-full text-left">
+                            <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
+                                {% for visitor in visitor_history %}
+                                <tr class="text-sm hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                                    <td class="p-3 text-gray-600 dark:text-gray-300">{{ visitor.name }}</td>
+                                    <td class="p-3 text-gray-500">Visited {{ visitor.student.user.first_name }}</td>
+                                    <td class="p-3 text-gray-400 text-right">
+                                        <span class="block text-xs">In: {{ visitor.check_in_time|date:"M d, H:i"
+                                            }}</span>
+                                        <span class="block text-xs">Out: {{ visitor.check_out_time|date:"H:i" }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

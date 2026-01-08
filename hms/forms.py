@@ -1,7 +1,18 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import (Student, AwayPeriod, Activity, Document, Message, MaintenanceRequest,
-                     Room, RoomAssignment, RoomChangeRequest, LeaveRequest)
+from .models import Student, AwayPeriod, Document, Meal, Message, MaintenanceRequest, Room, RoomAssignment, RoomChangeRequest, LeaveRequest, Visitor, Activity
+
+class VisitorForm(forms.ModelForm):
+    class Meta:
+        model = Visitor
+        fields = ['student', 'name', 'phone', 'id_number', 'purpose']
+        widgets = {
+            'student': forms.Select(attrs={'class': 'form-select w-full rounded-lg border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white'}),
+            'name': forms.TextInput(attrs={'class': 'form-input w-full rounded-lg border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white', 'placeholder': 'Visitor Name'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input w-full rounded-lg border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white', 'placeholder': 'Phone Number'}),
+            'id_number': forms.TextInput(attrs={'class': 'form-input w-full rounded-lg border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white', 'placeholder': 'National ID / Passport'}),
+            'purpose': forms.Textarea(attrs={'class': 'form-textarea w-full rounded-lg border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white', 'rows': 2, 'placeholder': 'Reason for visit'}),
+        }
 
 class StudentRegistrationForm(forms.ModelForm):
     # User fields

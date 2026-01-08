@@ -74,6 +74,11 @@ urlpatterns = [
     # Analytics Dashboard
     path('manage/analytics/', views.analytics_dashboard, name='analytics_dashboard'),
 
+    # Visitor Management
+    path('manage/visitors/', views.visitor_management, name='visitor_management'),
+    path('manage/visitors/checkout/<int:visitor_id>/', views.checkout_visitor, name='checkout_visitor'),
+
+
     
     # Password Reset
     # Explicitly defining these to ensure they are available
