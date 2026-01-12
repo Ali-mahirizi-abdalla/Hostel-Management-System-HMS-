@@ -78,6 +78,17 @@ urlpatterns = [
     path('manage/visitors/', views.visitor_management, name='visitor_management'),
     path('manage/visitors/checkout/<int:visitor_id>/', views.checkout_visitor, name='checkout_visitor'),
 
+    # Event Management
+    path('events/', views.events_list, name='events_list'),
+    path('events/my-rsvps/', views.my_events, name='my_events'),
+    path('events/<int:pk>/', views.event_detail, name='event_detail'),
+    path('events/<int:pk>/rsvp/', views.event_rsvp, name='event_rsvp'),
+    path('manage/events/', views.manage_events, name='manage_events'),
+    path('manage/events/create/', views.create_event, name='create_event'),
+    path('manage/events/edit/<int:pk>/', views.edit_event, name='edit_event'),
+    path('manage/events/delete/<int:pk>/', views.delete_event, name='delete_event'),
+    path('manage/events/<int:pk>/attendees/', views.event_attendees, name='event_attendees'),
+
 
     
     # Password Reset
@@ -108,4 +119,9 @@ urlpatterns = [
              template_name='hms/registration/password_reset_complete.html'
          ), 
          name='password_reset_complete'),
+    # Payment / M-Pesa
+    path('student/pay-accommodation/', views.pay_accommodation, name='pay_accommodation'),
+    path('student/payment-history/', views.payment_history, name='payment_history'),
+    path('payment/callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('payment/check/<int:payment_id>/', views.check_payment_status, name='check_payment_status'),
 ]

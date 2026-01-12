@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Student, AwayPeriod, Document, Meal, Message, MaintenanceRequest, Room, RoomAssignment, RoomChangeRequest, LeaveRequest, Visitor, Activity
+from .models import (Student, AwayPeriod, Document, Meal, Message, MaintenanceRequest, 
+                     Room, RoomAssignment, RoomChangeRequest, LeaveRequest, Visitor, Activity,
+                     Event, EventRSVP)
 
 class VisitorForm(forms.ModelForm):
     class Meta:
@@ -328,5 +330,95 @@ class LeaveApprovalForm(forms.ModelForm):
                 'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all',
                 'rows': 3,
                 'placeholder': 'Optional notes or feedback for the student...'
+            }),
+        }
+
+
+# ========== EVENT MANAGEMENT FORMS ==========
+
+class EventForm(forms.ModelForm):
+    """Form for creating and editing events"""
+    class Meta:
+        model = Event
+        fields = ['title', 'description', 'category', 'event_date', 'start_time', 'end_time', 
+                  'location', 'max_participants', 'image', 'is_mandatory', 'requires_rsvp', 'is_published']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all',
+                'placeholder': 'e.g., Hostel Annual Dinner'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all',
+                'rows': 4,
+                'placeholder': 'Describe the event in detail...'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all'
+            }),
+            'event_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all'
+            }),
+            'start_time': forms.TimeInput(attrs={
+                'type': 'time',
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all'
+            }),
+            'end_time': forms.TimeInput(attrs={
+                'type': 'time',
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all',
+                'placeholder': 'e.g., Main Hall, Sports Ground'
+            }),
+            'max_participants': forms.NumberInput(attrs={
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all',
+                'min': '1',
+                'placeholder': 'Leave blank for unlimited'
+            }),
+            'image': forms.FileInput(attrs={
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-gray-700 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-500/10 file:text-teal-600 dark:file:text-teal-400 hover:file:bg-teal-500/20 transition-all'
+            }),
+            'is_mandatory': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-teal-600 bg-slate-100 border-slate-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600'
+            }),
+            'requires_rsvp': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-teal-600 bg-slate-100 border-slate-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600'
+            }),
+            'is_published': forms.CheckboxInput(attrs={
+                'class': 'w-4 h4 text-teal-600 bg-slate-100 border-slate-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600'
+            }),
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        event_date = cleaned_data.get('event_date')
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        
+        if start_time and end_time and end_time <= start_time:
+            raise forms.ValidationError("End time must be after start time.")
+        
+        if event_date and not self.instance.pk:
+            from datetime import date
+            if event_date < date.today():
+                raise forms.ValidationError("Event date cannot be in the past.")
+        
+        return cleaned_data
+
+
+class EventRSVPForm(forms.ModelForm):
+    """Form for students to RSVP to events"""
+    class Meta:
+        model = EventRSVP
+        fields = ['status', 'notes']
+        widgets = {
+            'status': forms.RadioSelect(attrs={
+                'class': 'text-teal-600 focus:ring-teal-500 dark:focus:ring-teal-600'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all',
+                'rows': 2,
+                'placeholder': 'Optional notes or questions (optional)'
             }),
         }

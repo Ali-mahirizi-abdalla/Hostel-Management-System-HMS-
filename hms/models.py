@@ -299,3 +299,163 @@ class Visitor(models.Model):
         self.check_out_time = timezone.now()
         self.is_active = False
         self.save()
+
+
+class Event(models.Model):
+    """Hostel events and activities"""
+    EVENT_CATEGORIES = [
+        ('social', 'Social Event'),
+        ('educational', 'Educational'),
+        ('sports', 'Sports'),
+        ('cultural', 'Cultural'),
+        ('meeting', 'Meeting'),
+        ('other', 'Other'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    category = models.CharField(max_length=20, choices=EVENT_CATEGORIES, default='social')
+    
+    event_date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField(null=True, blank=True)
+    
+    location = models.CharField(max_length=200)
+    max_participants = models.IntegerField(null=True, blank=True, help_text="Leave blank for unlimited")
+    
+    image = models.ImageField(upload_to='event_images/', blank=True, null=True)
+    is_mandatory = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=True)
+    requires_rsvp = models.BooleanField(default=True)
+    
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_events')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-event_date', '-start_time']
+    
+    def __str__(self):
+        return f"{self.title} - {self.event_date}"
+    
+    @property
+    def rsvp_count(self):
+        """Get number of students who have RSVPed"""
+        return self.rsvps.filter(status='attending').count()
+    
+    @property
+    def is_full(self):
+        """Check if event has reached capacity"""
+        if self.max_participants:
+            return self.rsvp_count >= self.max_participants
+        return False
+    
+    @property
+    def is_past(self):
+        """Check if event is in the past"""
+        from datetime import datetime
+        event_datetime = datetime.combine(self.event_date, self.start_time)
+        return event_datetime < datetime.now()
+    
+    @property
+    def spots_remaining(self):
+        """Get number of spots remaining"""
+        if self.max_participants:
+            return max(0, self.max_participants - self.rsvp_count)
+        return None
+
+
+class EventRSVP(models.Model):
+    """Student RSVP for events"""
+    RSVP_STATUS = [
+        ('attending', 'Attending'),
+        ('not_attending', 'Not Attending'),
+        ('maybe', 'Maybe'),
+    ]
+    
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='rsvps')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='event_rsvps')
+    status = models.CharField(max_length=20, choices=RSVP_STATUS, default='attending')
+    attended = models.BooleanField(default=False, help_text="Mark if student actually attended")
+    notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['event', 'student']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.student} - {self.event.title} ({self.get_status_display()})"
+
+class LoginActivity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='login_activities', null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='Success')
+
+    class Meta:
+        verbose_name_plural = "Login Activities"
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user} - {self.timestamp}"
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = (
+        ('CREATE', 'Create'),
+        ('UPDATE', 'Update'),
+        ('DELETE', 'Delete'),
+    )
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    model_name = models.CharField(max_length=50)
+    object_id = models.CharField(max_length=50, null=True, blank=True)
+    object_repr = models.CharField(max_length=200, null=True, blank=True)
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    changes = models.TextField(null=True, blank=True) # JSON string or text summary
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.action} {self.model_name} by {self.user}"
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    link = models.CharField(max_length=255, blank=True, null=True) # Optional link to action
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.user}: {self.title}"
+
+class Payment(models.Model):
+    PAYMENT_STATUS = (
+        ('Pending', 'Pending'),
+        ('Completed', 'Completed'),
+        ('Failed', 'Failed'),
+    )
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='payments')
+    transaction_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    phone_number = models.CharField(max_length=15)
+    reference = models.CharField(max_length=50, default='Accommodation')
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='Pending')
+    checkout_request_id = models.CharField(max_length=100, blank=True, null=True) # For tracking STK Push
+    description = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.student} - {self.amount} - {self.status}"

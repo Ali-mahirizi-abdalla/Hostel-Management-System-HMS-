@@ -18,13 +18,13 @@ RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 ALLOWED_HOSTS = []
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-ALLOWED_HOSTS += ['.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS += ['.onrender.com', 'localhost', '127.0.0.1', '.ngrok-free.app', '.ngrok.io', '.ngrok-free.dev']
 
 # CSRF protection
 CSRF_TRUSTED_ORIGINS = []
 if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
-CSRF_TRUSTED_ORIGINS += ['https://*.onrender.com']
+CSRF_TRUSTED_ORIGINS += ['https://*.onrender.com', 'https://*.ngrok-free.app', 'https://*.ngrok.io', 'https://*.ngrok-free.dev']
 
 # Production security
 if not DEBUG:
@@ -73,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'hms.middleware.AuditMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -221,3 +222,12 @@ else:
     EMAIL_USE_TLS = True
     EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+# ============================================
+# MPESA CONFIGURATION
+# ============================================
+MPESA_CONSUMER_KEY = os.getenv('MPESA_CONSUMER_KEY', 'gvRvRQGv2IPDe51LWBlWDswROQ5QbkTEO5FhATaDbAOwuPYt')
+MPESA_CONSUMER_SECRET = os.getenv('MPESA_CONSUMER_SECRET', 'oAodSnD4w7KSilIXho1Q1BjzW1nQr0he9rB6uk3kUVQ4Nvb5MyDUrrcz3bPnQz0O')
+MPESA_SHORTCODE = os.getenv('MPESA_SHORTCODE', '174379') # Sandbox Paybill
+MPESA_PASSKEY = os.getenv('MPESA_PASSKEY', 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919') # Sandbox Passkey
+MPESA_CALLBACK_URL = os.getenv('MPESA_CALLBACK_URL', 'https://balustraded-unsatirizable-marhta.ngrok-free.dev/payment/callback/')

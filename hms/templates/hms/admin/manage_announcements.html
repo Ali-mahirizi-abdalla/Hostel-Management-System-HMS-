@@ -38,9 +38,9 @@
                 <select name="status"
                     class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all hover:bg-black/30 appearance-none">
                     <option value="" class="bg-gray-800">All Announcements</option>
-                    <option value="active" {% if status_filter=='active' %}selected{% endif %} class="bg-gray-800">
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %} class="bg-gray-800">
                         Active Only</option>
-                    <option value="inactive" {% if status_filter=='inactive' %}selected{% endif %} class="bg-gray-800">
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %} class="bg-gray-800">
                         Inactive Only</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">

@@ -1,80 +1,46 @@
 from django.core.management.base import BaseCommand
-from django.core.mail import send_mail
-from django.conf import settings
-from datetime import date, timedelta
-from hms.models import Student, Meal
-
+from django.utils import timezone
+from django.contrib.auth.models import User
+from hms.models import Notification
+import datetime
 
 class Command(BaseCommand):
-    help = 'Send email notifications to admin about unconfirmed students for tomorrow'
+    help = 'Send meal reminders to students based on current time'
 
-    def handle(self, *args, **options):
-        tomorrow = date.today() + timedelta(days=1)
+    def handle(self, *args, **kwargs):
+        now = timezone.localtime(timezone.now())
+        current_time = now.time()
         
-        # Get all students
-        all_students = Student.objects.all()
+        meal_type = None
         
-        # Get students who have confirmed meals for tomorrow
-        confirmed_student_ids = Meal.objects.filter(
-            date=tomorrow
-        ).values_list('student_id', flat=True)
-        
-        # Find unconfirmed students
-        unconfirmed_students = all_students.exclude(id__in=confirmed_student_ids)
-        
-        if not unconfirmed_students.exists():
-            self.stdout.write(
-                self.style.SUCCESS('✅ All students have confirmed their meals for tomorrow!')
-            )
+        # Define ranges (adjust as per hostel rules)
+        # Breakfast: 6:00 AM - 9:00 AM
+        if datetime.time(6, 0) <= current_time <= datetime.time(9, 0):
+            meal_type = 'Breakfast'
+        # Lunch: 11:00 AM - 2:00 PM
+        elif datetime.time(11, 0) <= current_time <= datetime.time(14, 0):
+            meal_type = 'Lunch'
+        # Dinner: 5:00 PM - 8:00 PM
+        elif datetime.time(17, 0) <= current_time <= datetime.time(20, 0):
+            meal_type = 'Dinner'
+            
+        if not meal_type:
+            self.stdout.write(self.style.WARNING(f'No active meal time found at {current_time}.'))
             return
+
+        # Get all students
+        users = User.objects.filter(student_profile__isnull=False)
+        count = 0
         
-        # Prepare email content
-        unconfirmed_count = unconfirmed_students.count()
-        student_list = '\n'.join([
-            f"  • {student.user.get_full_name()} ({student.university_id}) - {student.user.email}"
-            for student in unconfirmed_students
-        ])
-        
-        subject = f'⚠️ Meal Confirmation Alert - {unconfirmed_count} Students Unconfirmed for {tomorrow.strftime("%B %d, %Y")}'
-        
-        message = f"""
-Hello Admin,
-
-This is an automated notification from the Hostel Management System.
-
-📅 Date: {tomorrow.strftime("%A, %B %d, %Y")}
-⚠️ Unconfirmed Students: {unconfirmed_count} out of {all_students.count()}
-
-The following students have NOT confirmed their meals for tomorrow:
-
-{student_list}
-
-Please remind these students to confirm their meal preferences before the deadline.
-
----
-🔗 Access the admin dashboard: http://127.0.0.1:8000/kitchen/dashboard/
-
-This is an automated message from Hostel Management System.
-Do not reply to this email.
-        """
-        
-        try:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[settings.ADMIN_EMAIL],
-                fail_silently=False,
+        for user in users:
+            # Prevent duplicate notifications for same meal on same day could be added here
+            # For now, we assume this command runs once per meal slot
+            Notification.objects.create(
+                user=user,
+                title=f"🍽️ {meal_type} is Ready!",
+                message=f"Don't forget to have your {meal_type}. The mess hall is open.",
+                link="/student/dashboard/"
             )
+            count += 1
             
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'✅ Email sent successfully to {settings.ADMIN_EMAIL}\n'
-                    f'   {unconfirmed_count} unconfirmed students for {tomorrow}'
-                )
-            )
-            
-        except Exception as e:
-            self.stdout.write(
-                self.style.ERROR(f'❌ Failed to send email: {str(e)}')
-            )
+        self.stdout.write(self.style.SUCCESS(f'Successfully sent {count} {meal_type} reminders.'))

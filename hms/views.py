@@ -1,22 +1,27 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from .models import (Student, Meal, Activity, AwayPeriod, Announcement, Document, Message, MaintenanceRequest,
-                     Room, RoomAssignment, RoomChangeRequest, LeaveRequest, Visitor)
+                     Room, RoomAssignment, RoomChangeRequest, LeaveRequest, Visitor, Event, EventRSVP, Payment, Notification)
 from .forms import (
     StudentRegistrationForm, AwayModeForm, ActivityForm, DocumentForm, 
     TimetableForm, RoomSelectionForm, MessageForm, MaintenanceRequestForm,
     MaintenanceStatusForm, RoomForm, RoomAssignmentForm, RoomChangeRequestForm,
-    LeaveRequestForm, LeaveApprovalForm, VisitorForm
+    LeaveRequestForm, LeaveApprovalForm, VisitorForm, EventForm, EventRSVPForm
 )
 from datetime import date, datetime, time, timedelta
 from django.db import transaction, models
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+import json
+from .mpesa import MpesaClient
 
 # ==================== Authentication ====================
 
@@ -326,6 +331,16 @@ def dashboard_admin(request):
 
     # 2. Daily Lists
     present_list = meals_query.filter(away=False)
+    
+    # Filter by meal type if requested
+    filter_type = request.GET.get('filter')
+    if filter_type == 'breakfast':
+        present_list = present_list.filter(breakfast=True)
+    elif filter_type == 'supper':
+        present_list = present_list.filter(supper=True)
+    elif filter_type == 'early':
+        present_list = present_list.filter(early=True)
+
     # Students who have explicitly set 'away' to True for this date
     away_list_consult = meals_query.filter(away=True)
     
@@ -362,6 +377,7 @@ def dashboard_admin(request):
     context.update({
         'filter_date': filter_date,
         'search_query': search_query,
+        'filter_type': filter_type,
         'meals_list': present_list,
         'away_list_consult': away_list_consult, # Renamed to avoid confusion with AwayPeriod
         'unconfirmed_count': unconfirmed_count,
@@ -1524,3 +1540,435 @@ def checkout_visitor(request, visitor_id):
         messages.warning(request, "Visitor is already checked out.")
         
     return redirect('hms:visitor_management')
+
+
+# ==================== EVENT MANAGEMENT ====================
+
+@login_required
+def events_list(request):
+    """List all published events for students"""
+    today = date.today()
+    
+    # Get all published events
+    upcoming_events = Event.objects.filter(
+        is_published=True,
+        event_date__gte=today
+    ).order_by('event_date', 'start_time')
+    
+    past_events = Event.objects.filter(
+        is_published=True,
+        event_date__lt=today
+    ).order_by('-event_date', '-start_time')[:10]
+    
+    # Get student's RSVPs if user is a student
+    my_rsvps = {}
+    
+    # Convert queryset to list so we can attach attributes
+    upcoming_events = list(upcoming_events)
+    
+    if hasattr(request.user, 'student_profile'):
+        student = request.user.student_profile
+        rsvps = EventRSVP.objects.filter(student=student).select_related('event')
+        my_rsvps = {rsvp.event_id: rsvp for rsvp in rsvps}
+        
+        # Attach RSVP status directly to event objects
+        for event in upcoming_events:
+            event.user_rsvp = my_rsvps.get(event.id)
+    
+    context = {
+        'upcoming_events': upcoming_events,
+        'past_events': past_events,
+        'my_rsvps': my_rsvps,
+        'today': today,
+    }
+    return render(request, 'hms/events/event_list.html', context)
+
+
+@login_required
+def event_detail(request, pk):
+    """View single event details"""
+    event = get_object_or_404(Event, pk=pk)
+    
+    # Check if user has RSVPed
+    my_rsvp = None
+    can_rsvp = False
+    
+    if hasattr(request.user, 'student_profile'):
+        student = request.user.student_profile
+        try:
+            my_rsvp = EventRSVP.objects.get(event=event, student=student)
+        except EventRSVP.DoesNotExist:
+            pass
+        
+        # Can RSVP if event requires RSVP, isn't full, and isn't in the past
+        can_rsvp = event.requires_rsvp and not event.is_past and not event.is_full
+    
+    # Get all attend RSVPs for attendance list
+    attending_rsvps = event.rsvps.filter(status='attending').select_related('student__user')
+    
+    context = {
+        'event': event,
+        'my_rsvp': my_rsvp,
+        'can_rsvp': can_rsvp,
+        'attending_rsvps': attending_rsvps,
+    }
+    return render(request, 'hms/events/event_detail.html', context)
+
+
+@login_required
+def event_rsvp(request, pk):
+    """Student RSVPs to an event"""
+    if not hasattr(request.user, 'student_profile'):
+        messages.error(request, "Only students can RSVP to events.")
+        return redirect('hms:events_list')
+    
+    event = get_object_or_404(Event, pk=pk)
+    student = request.user.student_profile
+    
+    # Check if event allows RSVP
+    if not event.requires_rsvp:
+        messages.info(request, "This event does not require RSVP.")
+        return redirect('hms:event_detail', pk=pk)
+    
+    # Check if event is full
+    if event.is_full:
+        messages.error(request, "Sorry, this event is full.")
+        return redirect('hms:event_detail', pk=pk)
+    
+    # Check if event is in the past
+    if event.is_past:
+        messages.error(request, "Cannot RSVP to past events.")
+        return redirect('hms:event_detail', pk=pk)
+    
+    if request.method == 'POST':
+        # Get or create RSVP
+        rsvp, created = EventRSVP.objects.get_or_create(
+            event=event,
+            student=student
+        )
+        
+        form = EventRSVPForm(request.POST, instance=rsvp)
+        if form.is_valid():
+            form.save()
+            if created:
+                messages.success(request, f"Successfully RSVPed to {event.title}!")
+            else:
+                messages.success(request, "RSVP updated successfully!")
+            return redirect('hms:event_detail', pk=pk)
+    else:
+        try:
+            rsvp = EventRSVP.objects.get(event=event, student=student)
+            form = EventRSVPForm(instance=rsvp)
+        except EventRSVP.DoesNotExist:
+            form = EventRSVPForm()
+    
+    context = {
+        'event': event,
+        'form': form,
+    }
+    return render(request, 'hms/events/event_rsvp.html', context)
+
+
+@login_required
+def my_events(request):
+    """Student views their event RSVPs"""
+    if not hasattr(request.user, 'student_profile'):
+        messages.error(request, "Access denied.")
+        return redirect('hms:events_list')
+    
+    student = request.user.student_profile
+    today = date.today()
+    
+    # Get upcoming events the student has RSVPed to
+    upcoming_rsvps = EventRSVP.objects.filter(
+        student=student,
+        event__event_date__gte=today
+    ).select_related('event').order_by('event__event_date', 'event__start_time')
+    
+    # Get past events
+    past_rsvps = EventRSVP.objects.filter(
+        student=student,
+        event__event_date__lt=today
+    ).select_related('event').order_by('-event__event_date', '-event__start_time')[:10]
+    
+    context = {
+        'upcoming_rsvps': upcoming_rsvps,
+        'past_rsvps': past_rsvps,
+    }
+    return render(request, 'hms/events/my_events.html', context)
+
+
+@login_required
+def manage_events(request):
+    """Admin manages all events"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:events_list')
+    
+    today = date.today()
+    
+    # Get all events
+    upcoming_events = Event.objects.filter(
+        event_date__gte=today
+    ).order_by('event_date', 'start_time')
+    
+    past_events = Event.objects.filter(
+        event_date__lt=today
+    ).order_by('-event_date', '-start_time')[:20]
+    
+    context = {
+        'upcoming_events': upcoming_events,
+        'past_events': past_events,
+    }
+    return render(request, 'hms/events/manage_events.html', context)
+
+
+@login_required
+def create_event(request):
+    """Admin creates a new event"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:events_list')
+    
+    if request.method == 'POST':
+        form = EventForm(request.POST, request.FILES)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.created_by = request.user
+            event.save()
+            messages.success(request, f"Event '{event.title}' created successfully!")
+            return redirect('hms:manage_events')
+    else:
+        form = EventForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create New Event',
+    }
+    return render(request, 'hms/events/event_form.html', context)
+
+
+@login_required
+def edit_event(request, pk):
+    """Admin edits an event"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:events_list')
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    if request.method == 'POST':
+        form = EventForm(request.POST, request.FILES, instance=event)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Event '{event.title}' updated successfully!")
+            return redirect('hms:manage_events')
+    else:
+        form = EventForm(instance=event)
+    
+    context = {
+        'form': form,
+        'event': event,
+        'title': 'Edit Event',
+    }
+    return render(request, 'hms/events/event_form.html', context)
+
+
+@login_required
+def delete_event(request, pk):
+    """Admin deletes an event"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:events_list')
+    
+    event = get_object_or_404(Event, pk=pk)
+    event_title = event.title
+    event.delete()
+    messages.success(request, f"Event '{event_title}' deleted successfully!")
+    return redirect('hms:manage_events')
+
+
+@login_required
+def event_attendees(request, pk):
+    """Admin views event attendees and marks attendance"""
+    if not request.user.is_staff:
+        messages.error(request,  "Access denied. Admin only.")
+        return redirect('hms:events_list')
+    
+    event = get_object_or_404(Event, pk=pk)
+    
+    if request.method == 'POST':
+        # Mark attendance
+        rsvp_id = request.POST.get('rsvp_id')
+        attended = request.POST.get('attended') == 'on'
+        
+        try:
+            rsvp = EventRSVP.objects.get(id=rsvp_id, event=event)
+            rsvp.attended = attended
+            rsvp.save()
+            messages.success(request, "Attendance updated!")
+        except EventRSVP.DoesNotExist:
+            messages.error(request, "RSVP not found.")
+    
+    # Get all RSVPs for this event
+    rsvps = event.rsvps.select_related('student__user').order_by('student__user__first_name')
+    
+    # Statistics
+    total_rsvps = rsvps.count()
+    attending_count = rsvps.filter(status='attending').count()
+    attended_count = rsvps.filter(attended=True).count()
+    
+    context = {
+        'event': event,
+        'rsvps': rsvps,
+        'total_rsvps': total_rsvps,
+        'attending_count': attending_count,
+        'attended_count': attended_count,
+    }
+    return render(request, 'hms/events/event_attendees.html', context)
+
+# ==================== Payment & M-Pesa ====================
+
+@login_required
+def pay_accommodation(request):
+    if request.method == 'POST':
+        phone = request.POST.get('phone')
+        amount = request.POST.get('amount')
+        
+        # Basic validation
+        if not phone or not amount:
+            messages.error(request, "Please provide phone number and amount")
+            return redirect('hms:pay_accommodation')
+
+        # Save pending payment
+        try:
+            student = request.user.student_profile
+        except Student.DoesNotExist:
+            messages.error(request, "Student profile not found.")
+            return redirect('hms:dashboard')
+
+        payment = Payment.objects.create(
+            student=student,
+            amount=amount,
+            phone_number=phone,
+            status='Pending'
+        )
+        
+        # Initiate STK Push
+        mpesa = MpesaClient()
+        # Ensure callback URL is accessible from internet (e.g. ngrok) for local dev
+        callback_url = settings.MPESA_CALLBACK_URL
+        response = mpesa.stk_push(phone, amount, "Accommodation", callback_url)
+        
+        if response.get('ResponseCode') == '0':
+            payment.checkout_request_id = response.get('CheckoutRequestID')
+            payment.save()
+            messages.success(request, f"STK Push initiated to {phone}. Check your phone to complete payment.")
+        else:
+            payment.status = 'Failed'
+            payment.description = response.get('ResponseDescription', 'Unknown Error')
+            payment.save()
+            messages.error(request, f"Payment initiation failed: {payment.description}")
+            
+        return redirect('hms:payment_history')
+        
+    return render(request, 'hms/student/pay_accommodation.html')
+
+@login_required
+def payment_history(request):
+    try:
+        student = request.user.student_profile
+        payments = Payment.objects.filter(student=student).order_by('-created_at')
+    except Student.DoesNotExist:
+        payments = []
+    return render(request, 'hms/student/payment_history.html', {'payments': payments})
+
+@csrf_exempt
+def mpesa_callback(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Log raw data for debugging if needed
+            # print(data)
+            
+            stk_callback = data.get('Body', {}).get('stkCallback', {})
+            result_code = stk_callback.get('ResultCode')
+            checkout_request_id = stk_callback.get('CheckoutRequestID')
+            result_desc = stk_callback.get('ResultDesc')
+            
+            if not checkout_request_id:
+                return JsonResponse({'status': 'error', 'message': 'No CheckoutRequestID'}, status=400)
+
+            try:
+                payment = Payment.objects.get(checkout_request_id=checkout_request_id)
+            except Payment.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Payment not found'}, status=404)
+
+            if result_code == 0:
+                payment.status = 'Completed'
+                payment.description = 'Success'
+                # Extract receipt no
+                meta = stk_callback.get('CallbackMetadata', {}).get('Item', [])
+                for item in meta:
+                    if item.get('Name') == 'MpesaReceiptNumber':
+                        payment.transaction_id = item.get('Value')
+                
+                # Send Notification
+                Notification.objects.create(
+                    user=payment.student.user,
+                    title="Payment Received",
+                    message=f"We received your payment of KES {payment.amount}. Ref: {payment.transaction_id}",
+                    link="/student/payment-history/"
+                )
+            else:
+                payment.status = 'Failed'
+                payment.description = result_desc
+
+            payment.save()
+        except Exception as e:
+            print(f"Callback Error: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            
+        return JsonResponse({'status': 'ok'})
+    return JsonResponse({'error': 'only post'}, status=400)
+
+@login_required
+def check_payment_status(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id, student=request.user.student_profile)
+    
+    if payment.status == 'Completed':
+        messages.info(request, "Payment is already completed.")
+        return redirect('hms:payment_history')
+        
+    if not payment.checkout_request_id:
+        messages.error(request, "Cannot verify this payment (No CheckoutRequestID).")
+        return redirect('hms:payment_history')
+
+    mpesa = MpesaClient()
+    response = mpesa.stk_push_query(payment.checkout_request_id)
+    
+    if response.get('ResponseCode') == '0':
+        result_code = response.get('ResultCode')
+        if result_code == '0':
+            payment.status = 'Completed'
+            payment.description = response.get('ResultDesc', 'Verified Manually')
+            payment.save()
+            
+            Notification.objects.create(
+                user=request.user, 
+                title="Payment Verified",
+                message=f"Manual verification successful for KES {payment.amount}.",
+                link="/student/payment-history/"
+            )
+            
+            messages.success(request, "Payment verified successfully!")
+        else:
+            if result_code in ['1032', '1037', '1']:
+                payment.status = 'Failed'
+                payment.description = response.get('ResultDesc')
+                payment.save()
+            messages.warning(request, f"Payment status: {response.get('ResultDesc')}")
+    else:
+        messages.error(request, f"Query failed: {response.get('ResponseDescription', response.get('errorMessage'))}")
+        
+    return redirect('hms:payment_history')

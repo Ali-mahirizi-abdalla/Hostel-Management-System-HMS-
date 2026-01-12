@@ -42,10 +42,10 @@
                     class="w-full px-3 py-2 bg-white border border-slate-300 rounded text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                     id="meal_type" name="meal_type">
                     <option value="">All Meals</option>
-                    <option value="breakfast" {% if request.GET.meal_type=='breakfast' %}selected{% endif %}>Breakfast
+                    <option value="breakfast" {% if request.GET.meal_type == 'breakfast' %}selected{% endif %}>Breakfast
                     </option>
-                    <option value="lunch" {% if request.GET.meal_type=='lunch' %}selected{% endif %}>Lunch</option>
-                    <option value="dinner" {% if request.GET.meal_type=='dinner' %}selected{% endif %}>Dinner</option>
+                    <option value="lunch" {% if request.GET.meal_type == 'lunch' %}selected{% endif %}>Lunch</option>
+                    <option value="dinner" {% if request.GET.meal_type == 'dinner' %}selected{% endif %}>Dinner</option>
                 </select>
             </div>
             <div class="md:col-span-2 flex items-end gap-2">
@@ -229,40 +229,40 @@
                 datasets: [{
                     data: [
                         {{ stats.total_breakfast }},
-                {{ stats.total_lunch }},
+                        {{ stats.total_lunch }},
                         {{ stats.total_dinner }}
                     ],
-        backgroundColor: [
-        'rgba(59, 130, 246, 0.8)',  // Blue
-        'rgba(16, 185, 129, 0.8)', // Emerald
-        'rgba(245, 158, 11, 0.8)'  // Amber
-    ],
-        borderColor: [
-        'rgba(59, 130, 246, 1)',
-        'rgba(16, 185, 129, 1)',
-        'rgba(245, 158, 11, 1)'
-    ],
-        borderWidth: 1
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',  // Blue
+                        'rgba(16, 185, 129, 0.8)', // Emerald
+                        'rgba(245, 158, 11, 0.8)'  // Amber
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(245, 158, 11, 1)'
+                    ],
+                    borderWidth: 1
                 }]
             },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    usePointStyle: true,
-                    padding: 20,
-                    font: {
-                        family: "'Inter', sans-serif",
-                        size: 12
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 12
+                            }
+                        }
                     }
-                }
+                },
+                cutout: '70%',
             }
-        },
-        cutout: '70%',
-    }
         });
     });
 </script>

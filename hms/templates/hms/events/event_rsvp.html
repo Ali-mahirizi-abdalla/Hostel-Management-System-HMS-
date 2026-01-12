@@ -1,0 +1,84 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}RSVP - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <div class="glass-card overflow-hidden">
+        <div class="p-8 text-center bg-gradient-to-br from-[#001f3f] to-[#003366] text-white">
+            <h2 class="text-2xl font-bold mb-2">RSVP For Event</h2>
+            <h3 class="text-xl text-teal-300 font-medium">{{ event.title }}</h3>
+            <p class="text-white/70 text-sm mt-4">
+                {{ event.event_date|date:"l, F d, Y" }} at {{ event.start_time|time:"g:i A" }}
+            </p>
+        </div>
+
+        <div class="p-8">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Will you be
+                        attending?</label>
+                    <div class="grid grid-cols-3 gap-4">
+                        {% for radio in form.status %}
+                        <div class="relative">
+                            {{ radio.tag }}
+                            <label for="{{ radio.id_for_label }}"
+                                class="block w-full text-center p-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-slate-600 cursor-pointer hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-slate-700/50 transition-all peer-checked:border-teal-500 peer-checked:bg-teal-50 dark:peer-checked:bg-slate-700 peer-checked:text-teal-700 dark:peer-checked:text-teal-400 font-medium">
+                                {{ radio.choice_label }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Simple CSS override for radio buttons if needed due to default django rendering -->
+                    <style>
+                        input[type="radio"] {
+                            position: absolute;
+                            opacity: 0;
+                            width: 0;
+                            height: 0;
+                        }
+
+                        input[type="radio"]:checked+label {
+                            border-style: solid;
+                            border-color: #0d9488;
+                            background-color: rgba(13, 148, 136, 0.1);
+                            color: #0f766e;
+                        }
+
+                        .dark input[type="radio"]:checked+label {
+                            color: #2dd4bf;
+                        }
+                    </style>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Questions or Notes (Optional)</label>
+                    {{ form.notes }}
+                    <p class="text-xs text-gray-500 mt-1">Is there anything specific you'd like the organizers to know?
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-4 pt-4">
+                    <a href="{% url 'hms:event_detail' event.id %}"
+                        class="flex-1 px-6 py-3 rounded-xl border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-slate-700 text-center transition">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                        class="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-[#001f3f] to-[#003366] text-white font-bold shadow-lg hover:opacity-90 transform hover:-translate-y-0.5 transition-all">
+                        Confirm RSVP
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

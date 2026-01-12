@@ -1,0 +1,230 @@
+
+import os
+
+file_path = r"c:\Users\jamal\OneDrive\Desktop\HMS\Hostel-Management-System-HMS-\hms\templates\hms\admin\manage_announcements.html"
+
+content = r"""{% extends 'hms/base.html' %}
+
+{% block title %}Manage Announcements - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-cyan-300">
+                Manage Announcements
+            </h1>
+            <p class="text-gray-400 mt-2">Publish and organize system-wide notifications</p>
+        </div>
+        <a href="{% url 'hms:create_announcement' %}"
+            class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-bold rounded-xl shadow-lg transform hover:-translate-y-1 transition duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Announcement
+        </a>
+    </div>
+
+    <!-- Search and Filter Form -->
+    <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl p-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-5 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text" name="search"
+                    class="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all hover:bg-black/30"
+                    placeholder="Search announcements..." value="{{ search_query }}">
+            </div>
+            <div class="md:col-span-4 relative">
+                <select name="status"
+                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all hover:bg-black/30 appearance-none">
+                    <option value="" class="bg-gray-800">All Announcements</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %} class="bg-gray-800">
+                        Active Only</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %} class="bg-gray-800">
+                        Inactive Only</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
+            <div class="md:col-span-3">
+                <button type="submit"
+                    class="w-full flex items-center justify-center px-6 py-3 bg-white/10 border border-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Announcements List -->
+    {% if page_obj %}
+    <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-gray-300">
+                <thead class="bg-black/20 text-xs uppercase text-gray-400 font-medium tracking-wider">
+                    <tr>
+                        <th class="px-6 py-4">Title & Priority</th>
+                        <th class="px-6 py-4">Author</th>
+                        <th class="px-6 py-4">Published</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for announcement in page_obj %}
+                    <tr class="hover:bg-white/5 transition-colors duration-200">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-white text-lg mb-1">{{ announcement.title|truncatewords:8 }}
+                            </div>
+                            {% if announcement.priority == 'high' or announcement.priority == 'urgent' %}
+                            <span
+                                class="px-2 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/30">
+                                {{ announcement.get_priority_display }}
+                            </span>
+                            {% elif announcement.priority == 'low' %}
+                            <span
+                                class="px-2 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/30">
+                                {{ announcement.get_priority_display }}
+                            </span>
+                            {% else %}
+                            <span
+                                class="px-2 py-0.5 rounded text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                {{ announcement.get_priority_display }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-300 font-bold text-xs">
+                                    {{
+                                    announcement.created_by.first_name|first|default:announcement.created_by.username|first|upper
+                                    }}
+                                </div>
+                                <span class="text-gray-300">{{
+                                    announcement.created_by.get_full_name|default:announcement.created_by.username
+                                    }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-400">
+                            {{ announcement.created_at|timesince }} ago
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if announcement.is_active %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                                • Active
+                            </span>
+                            {% else %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">
+                                • Inactive
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'hms:edit_announcement' announcement.id %}"
+                                    class="p-2 text-teal-400 hover:text-white hover:bg-teal-500/20 rounded-lg transition"
+                                    title="Edit">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                                <button type="button"
+                                    class="delete-announcement p-2 text-red-400 hover:text-white hover:bg-red-500/20 rounded-lg transition"
+                                    title="Delete" data-id="{{ announcement.id }}"
+                                    data-title="{{ announcement.title }}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="bg-white/5 border-t border-white/10 px-6 py-4 flex items-center justify-between">
+            <span class="text-sm text-gray-400">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                    class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-gray-300 transition">
+                    Previous
+                </a>
+                {% endif %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                    class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-gray-300 transition">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl p-12 text-center">
+        <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+        <h3 class="text-xl font-medium text-gray-300">No announcements found</h3>
+        <p class="text-gray-500 mt-2">Create a new one to inform your students.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Hidden Delete Form -->
+<form id="deleteForm" method="post" action="{% url 'hms:delete_announcement' 0 %}">
+    {% csrf_token %}
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.delete-announcement').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                const title = this.getAttribute('data-title');
+                if (confirm(`Are you sure you want to delete the announcement "${title}"?`)) {
+                    const form = document.getElementById('deleteForm');
+                    // Replace '0' placeholder with actual ID in the action URL
+                    form.action = form.action.replace('/0/', '/' + id + '/');
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+"""
+
+print(f"Writing to {file_path}...")
+try:
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(content)
+        f.flush()
+        os.fsync(f.fileno())
+    print("Success.")
+except Exception as e:
+    print(f"Error: {e}")
