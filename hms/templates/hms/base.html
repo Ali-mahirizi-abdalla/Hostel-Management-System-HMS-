@@ -16,124 +16,193 @@
         const systemTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         const theme = savedTheme || systemTheme;
         document.documentElement.setAttribute('data-theme', theme);
-        
+
         // Tailwind Dark Mode Support via class (optional, but good practice)
         if (theme === 'dark') document.documentElement.classList.add('dark');
     </script>
     <style>
         /* Custom Scrollbar for sidebar */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
-        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         /* Theme Transition */
-        body, .glass-card, .sidebar, nav { transition: background-color 0.3s ease, border-color 0.3s ease; }
+        body,
+        .glass-card,
+        .sidebar,
+        nav {
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
     </style>
 </head>
 
-<body class="flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-[#0f172a] text-slate-800 dark:text-white font-sans antialiased">
+<body
+    class="flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-[#0f172a] text-slate-800 dark:text-white font-sans antialiased">
 
     <!-- Top Navbar -->
     <nav class="h-20 flex-shrink-0 z-50 border-b border-white/10 shadow-lg relative"
-         style="background: linear-gradient(90deg, #001f3f 0%, #003366 100%);">
+        style="background: linear-gradient(90deg, #001f3f 0%, #003366 100%);">
         <div class="h-full px-4 md:px-6 flex items-center justify-between">
-            
+
             <!-- Left: Mobile Toggle & Brand -->
             <div class="flex items-center gap-4">
-                 <button id="mobile-menu-btn" class="md:hidden text-white hover:bg-white/10 p-2 rounded-lg transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                 </button>
-                 
-                 <a href="{% url 'hms:home' %}" class="flex items-center gap-3 group">
-                    <div class="bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition shadow-inner border border-white/10">
-                        <svg class="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <button id="mobile-menu-btn" class="md:hidden text-white hover:bg-white/10 p-2 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+
+                <a href="{% url 'hms:home' %}" class="flex items-center gap-3 group">
+                    <div
+                        class="bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition shadow-inner border border-white/10">
+                        <svg class="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                            </path>
+                        </svg>
                     </div>
                     <div class="hidden sm:block">
                         <h1 class="text-xl font-bold text-white tracking-tight leading-none">Hostel System</h1>
-                        <p class="text-[10px] text-indigo-200 uppercase tracking-widest font-semibold">Management Portal</p>
+                        <p class="text-[10px] text-indigo-200 uppercase tracking-widest font-semibold">Management Portal
+                        </p>
                     </div>
-                 </a>
+                </a>
             </div>
 
             <!-- Center: Global Search -->
             <div class="hidden md:block flex-1 max-w-xl mx-8">
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-indigo-300 group-focus-within:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <svg class="w-5 h-5 text-indigo-300 group-focus-within:text-white transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
                     </div>
-                    <input type="text" 
-                        class="block w-full pl-11 pr-4 py-2.5 border border-white/10 rounded-full leading-5 bg-[#002855] text-white placeholder-indigo-300 focus:outline-none focus:bg-[#003366] focus:border-indigo-400 focus:placeholder-white focus:ring-1 focus:ring-indigo-400 sm:text-sm transition-all shadow-inner" 
+                    <input type="text"
+                        class="block w-full pl-11 pr-4 py-2.5 border border-white/10 rounded-full leading-5 bg-[#002855] text-white placeholder-indigo-300 focus:outline-none focus:bg-[#003366] focus:border-indigo-400 focus:placeholder-white focus:ring-1 focus:ring-indigo-400 sm:text-sm transition-all shadow-inner"
                         placeholder="Search for students, events, or resources...">
                 </div>
             </div>
 
             <!-- Right: Global Actions -->
             <div class="flex items-center gap-3 md:gap-5">
-                
+
                 <!-- Theme Toggle -->
-                <button id="themeToggle" class="p-2 text-indigo-200 hover:text-white hover:bg-white/10 rounded-full transition-all relative group" title="Toggle Theme">
-                    <div class="absolute inset-0 bg-white/5 rounded-full scale-0 group-hover:scale-100 transition-transform"></div>
-                    <svg class="w-6 h-6 icon-sun hidden relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <svg class="w-6 h-6 icon-moon relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <button id="themeToggle"
+                    class="p-2 text-indigo-200 hover:text-white hover:bg-white/10 rounded-full transition-all relative group"
+                    title="Toggle Theme">
+                    <div
+                        class="absolute inset-0 bg-white/5 rounded-full scale-0 group-hover:scale-100 transition-transform">
+                    </div>
+                    <svg class="w-6 h-6 icon-sun hidden relative z-10" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-6 h-6 icon-moon relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
                 </button>
 
                 <!-- Notifications -->
-                <button class="p-2 text-indigo-200 hover:text-white hover:bg-white/10 rounded-full transition-all relative group">
-                    <div class="absolute inset-0 bg-white/5 rounded-full scale-0 group-hover:scale-100 transition-transform"></div>
-                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-[#003366] animate-pulse"></span>
+                <button
+                    class="p-2 text-indigo-200 hover:text-white hover:bg-white/10 rounded-full transition-all relative group">
+                    <div
+                        class="absolute inset-0 bg-white/5 rounded-full scale-0 group-hover:scale-100 transition-transform">
+                    </div>
+                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                        </path>
+                    </svg>
+                    <span
+                        class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-[#003366] animate-pulse"></span>
                 </button>
 
                 <!-- Profile -->
                 {% if user.is_authenticated %}
                 <div class="h-8 w-[1px] bg-white/20 mx-1"></div>
-                <a href="{% url 'hms:student_profile' %}" class="flex items-center gap-3 pl-1 hover:bg-white/10 rounded-full p-1 pr-4 transition-all group border border-transparent hover:border-white/10">
+                <a href="{% url 'hms:student_profile' %}"
+                    class="flex items-center gap-3 pl-1 hover:bg-white/10 rounded-full p-1 pr-4 transition-all group border border-transparent hover:border-white/10">
                     {% if user.student_profile.profile_image %}
-                    <img src="{{ user.student_profile.profile_image.url }}" class="w-9 h-9 rounded-full object-cover border-2 border-indigo-400 group-hover:border-white transition-colors">
+                    <img src="{{ user.student_profile.profile_image.url }}"
+                        class="w-9 h-9 rounded-full object-cover border-2 border-indigo-400 group-hover:border-white transition-colors">
                     {% else %}
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs border-2 border-white/20 shadow-md">
+                    <div
+                        class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs border-2 border-white/20 shadow-md">
                         {{ user.first_name|first }}
                     </div>
                     {% endif %}
                     <div class="hidden md:block text-left">
-                        <p class="text-sm font-bold text-white group-hover:text-teal-300 transition-colors leading-tight">{{ user.first_name }}</p>
-                        <p class="text-[10px] text-indigo-300 uppercase tracking-widest">{% if user.is_staff %}Admin{% else %}Student{% endif %}</p>
+                        <p
+                            class="text-sm font-bold text-white group-hover:text-teal-300 transition-colors leading-tight">
+                            {{ user.first_name }}</p>
+                        <p class="text-[10px] text-indigo-300 uppercase tracking-widest">{% if user.is_staff %}Admin{%
+                            else %}Student{% endif %}</p>
                     </div>
                 </a>
                 {% else %}
-                <a href="{% url 'hms:login' %}" class="text-sm font-bold text-white hover:text-teal-300 transition">Login</a>
+                <a href="{% url 'hms:login' %}"
+                    class="text-sm font-bold text-white hover:text-teal-300 transition">Login</a>
                 {% endif %}
             </div>
         </div>
     </nav>
-    
+
     <!-- Main Layout Wrapper -->
-    <div class="flex flex-1 overflow-hidden relative"> 
-        
+    <div class="flex flex-1 overflow-hidden relative">
+
         <!-- Conditional Sidebar -->
         {% if user.is_authenticated %}
-             {% include 'hms/includes/sidebar.html' %}
+        {% include 'hms/includes/sidebar.html' %}
         {% endif %}
-        
+
         <!-- Content Area -->
-        <main class="flex-1 overflow-y-auto w-full relative z-0 flex flex-col scroll-smooth"> 
-            
+        <main class="flex-1 overflow-y-auto w-full relative z-0 flex flex-col scroll-smooth">
+
             <!-- Messages / Alerts -->
             {% if messages %}
             <div class="container mx-auto px-6 max-w-7xl mt-6 animate-fade-in-down">
                 {% for message in messages %}
-                <div class="p-4 rounded-xl shadow-lg flex items-start gap-4 mb-4 border-l-4
+                <div
+                    class="p-4 rounded-xl shadow-lg flex items-start gap-4 mb-4 border-l-4
                     {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-500 dark:bg-green-900/30 dark:text-green-300
                     {% elif message.tags == 'error' %}bg-red-50 text-red-800 border-red-500 dark:bg-red-900/30 dark:text-red-300
                     {% else %}bg-indigo-50 text-indigo-800 border-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300{% endif %}">
                     <div>
                         {% if message.tags == 'success' %}
-                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                         {% elif message.tags == 'error' %}
-                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                         {% else %}
-                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                         {% endif %}
                     </div>
                     <span class="font-medium text-sm">{{ message }}</span>
@@ -144,77 +213,82 @@
 
             <!-- Main Page Content -->
             <div class="flex-1 p-4 md:p-8 container mx-auto max-w-7xl">
-                 {% block content %}{% endblock %}
+                {% block content %}{% endblock %}
             </div>
 
             <!-- Footer -->
             <footer class="mt-auto border-t border-gray-200 dark:border-slate-700/50 py-6 text-center">
                 <p class="text-sm text-gray-500 dark:text-slate-500">
-                    &copy; {% now "Y" %} Hostel Management System. 
-                    <span class="hidden sm:inline">Designed for Students.</span>
+                    &copy; {% now "Y" %} Hostel Management System.
+                    <span class="hidden sm:inline">Developed by <strong class="text-indigo-600 dark:text-indigo-400">Ali
+                            Mahirizi Abdalla</strong>.</span>
+                </p>
+                <p class="text-xs text-gray-400 dark:text-slate-600 mt-1">
+                    Designed for Students, Built with Excellence.
                 </p>
             </footer>
         </main>
 
         <!-- Mobile Sidebar Overlay -->
-        <div id="sidebar-overlay" class="md:hidden fixed inset-0 bg-black/50 z-30 hidden backdrop-blur-sm transition-opacity"></div>
+        <div id="sidebar-overlay"
+            class="md:hidden fixed inset-0 bg-black/50 z-30 hidden backdrop-blur-sm transition-opacity"></div>
     </div>
 
     <script>
-       const mobileBtn = document.getElementById('mobile-menu-btn');
-       const sidebar = document.querySelector('aside');
-       const overlay = document.getElementById('sidebar-overlay');
-       const themeToggle = document.getElementById('themeToggle');
-       const iconSun = document.querySelector('.icon-sun');
-       const iconMoon = document.querySelector('.icon-moon');
-       const html = document.documentElement;
-       
-       // Mobile Sidebar Logic
-       if (mobileBtn && sidebar) {
-           mobileBtn.addEventListener('click', () => {
-               sidebar.classList.toggle('hidden');
-               sidebar.classList.toggle('absolute'); // Mobile override
-               sidebar.classList.toggle('fixed'); 
-               sidebar.classList.toggle('shadow-2xl');
-               if(overlay) overlay.classList.toggle('hidden');
-           });
-       }
-       
-       if(overlay) {
-           overlay.addEventListener('click', () => {
-               sidebar.classList.add('hidden');
-               sidebar.classList.remove('absolute', 'fixed', 'shadow-2xl');
-               overlay.classList.add('hidden');
-           });
-       }
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.querySelector('aside');
+        const overlay = document.getElementById('sidebar-overlay');
+        const themeToggle = document.getElementById('themeToggle');
+        const iconSun = document.querySelector('.icon-sun');
+        const iconMoon = document.querySelector('.icon-moon');
+        const html = document.documentElement;
 
-       // Theme Logic
-       const updateIcons = (theme) => {
-           if (theme === 'dark') {
-               iconMoon.classList.add('hidden');
-               iconSun.classList.remove('hidden');
-           } else {
-               iconSun.classList.add('hidden');
-               iconMoon.classList.remove('hidden');
-           }
-       };
+        // Mobile Sidebar Logic
+        if (mobileBtn && sidebar) {
+            mobileBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('hidden');
+                sidebar.classList.toggle('absolute'); // Mobile override
+                sidebar.classList.toggle('fixed');
+                sidebar.classList.toggle('shadow-2xl');
+                if (overlay) overlay.classList.toggle('hidden');
+            });
+        }
 
-       const currentTheme = html.getAttribute('data-theme');
-       updateIcons(currentTheme);
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('absolute', 'fixed', 'shadow-2xl');
+                overlay.classList.add('hidden');
+            });
+        }
 
-       themeToggle.addEventListener('click', () => {
-           const current = html.getAttribute('data-theme');
-           const newTheme = current === 'light' ? 'dark' : 'light';
-           
-           html.setAttribute('data-theme', newTheme);
-           if(newTheme === 'dark') html.classList.add('dark');
-           else html.classList.remove('dark');
-           
-           localStorage.setItem('theme', newTheme);
-           updateIcons(newTheme);
-       });
-       
-       // Auto dismiss messages
+        // Theme Logic
+        const updateIcons = (theme) => {
+            if (theme === 'dark') {
+                iconMoon.classList.add('hidden');
+                iconSun.classList.remove('hidden');
+            } else {
+                iconSun.classList.add('hidden');
+                iconMoon.classList.remove('hidden');
+            }
+        };
+
+        const currentTheme = html.getAttribute('data-theme');
+        updateIcons(currentTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const current = html.getAttribute('data-theme');
+            const newTheme = current === 'light' ? 'dark' : 'light';
+
+            html.setAttribute('data-theme', newTheme);
+            if (newTheme === 'dark') html.classList.add('dark');
+            else html.classList.remove('dark');
+
+            localStorage.setItem('theme', newTheme);
+            updateIcons(newTheme);
+        });
+
+        // Auto dismiss messages
         setTimeout(() => {
             const msgs = document.querySelectorAll('.animate-fade-in-down');
             msgs.forEach(m => {
@@ -225,4 +299,5 @@
         }, 5000);
     </script>
 </body>
+
 </html>

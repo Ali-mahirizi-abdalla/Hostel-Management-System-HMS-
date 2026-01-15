@@ -1,0 +1,51 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                     HOSTEL MANAGEMENT SYSTEM (HMS)                           ║
+║                     ═══════════════════════════════                          ║
+║                                                                              ║
+║                    Full Stack Web Application v2.0                           ║
+║                                                                              ║
+║                  ┌────────────────────────────────────┐                      ║
+║                  │  Developed by:                     │                      ║
+║                  │  ALI MAHIRIZI ABDALLA             │                      ║
+║                  └────────────────────────────────────┘                      ║
+║                                                                              ║
+║  ┌─────────────────────────────────────────────────────────────────────┐    ║
+║  │  TECHNOLOGY STACK                                                   │    ║
+║  ├─────────────────────────────────────────────────────────────────────┤    ║
+║  │  • Backend:        Django 4.2 (Python)                              │    ║
+║  │  • Frontend:       HTML5, Tailwind CSS, JavaScript                  │    ║
+║  │  • Database:       SQLite / PostgreSQL                              │    ║
+║  │  • Payments:       M-Pesa Daraja API                                │    ║
+║  │  • Auth:           Django Auth + Google OAuth                       │    ║
+║  │  • Deployment:     Render, Vercel Compatible                        │    ║
+║  └─────────────────────────────────────────────────────────────────────┘    ║
+║                                                                              ║
+║  ┌─────────────────────────────────────────────────────────────────────┐    ║
+║  │  KEY FEATURES                                                       │    ║
+║  ├─────────────────────────────────────────────────────────────────────┤    ║
+║  │  ✓ Student & Admin Dashboards                                      │    ║
+║  │  ✓ Real-time Meal Booking System                                   │    ║
+║  │  ✓ M-Pesa Payment Integration                                      │    ║
+║  │  ✓ Maintenance Request Tracking                                    │    ║
+║  │  ✓ Leave Request Management                                        │    ║
+║  │  ✓ Analytics & Reporting                                           │    ║
+║  │  ✓ Dark Mode Support                                               │    ║
+║  │  ✓ Responsive Design                                               │    ║
+║  └─────────────────────────────────────────────────────────────────────┘    ║
+║                                                                              ║
+║  ┌─────────────────────────────────────────────────────────────────────┐    ║
+║  │  PROJECT INFORMATION                                                │    ║
+║  ├─────────────────────────────────────────────────────────────────────┤    ║
+║  │  Version:          2.0                                              │    ║
+║  │  License:          MIT License                                      │    ║
+║  │  Year:             2026                                             │    ║
+║  │  Status:           Production Ready                                 │    ║
+║  └─────────────────────────────────────────────────────────────────────┘    ║
+║                                                                              ║
+║                    © 2026 Ali Mahirizi Abdalla                               ║
+║                    All Rights Reserved                                       ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Built with ❤️ by Ali Mahirizi Abdalla

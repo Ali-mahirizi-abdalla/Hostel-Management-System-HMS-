@@ -699,22 +699,32 @@ def create_announcement(request):
         title = request.POST.get('title')
         content = request.POST.get('content')
         priority = request.POST.get('priority', 'normal')
+        is_active = request.POST.get('is_active') == 'on'
         
         announcement = Announcement.objects.create(
             title=title,
             content=content,
             priority=priority,
+            is_active=is_active,
             created_by=request.user
         )
         
-        # Send notifications
-        from .notifications import notify_new_announcement
-        notify_new_announcement(announcement)
+        # Send notifications only if announcement is active
+        if is_active:
+            try:
+                from .notifications import notify_new_announcement
+                notify_new_announcement(announcement)
+                messages.success(request, 'Announcement created successfully and notifications sent!')
+            except Exception as e:
+                messages.warning(request, f'Announcement created but notifications failed: {str(e)}')
+        else:
+            messages.success(request, 'Announcement created successfully (inactive - no notifications sent).')
         
-        messages.success(request, 'Announcement created successfully and notifications sent!')
         return redirect('hms:manage_announcements')
     
-    return render(request, 'hms/admin/announcement_form.html')
+    # GET request - show list of recent announcements
+    announcements = Announcement.objects.all().order_by('-created_at')[:10]
+    return render(request, 'hms/admin/announcements.html', {'announcements': announcements})
 
 # ==================== Activities ====================
 

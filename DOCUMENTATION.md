@@ -1,5 +1,9 @@
 # Hostel Management System (HMS) Documentation
 
+**Author:** Ali Mahirizi Abdalla  
+**Project:** Hostel Management System  
+**Version:** 2.0  
+
 ## 1. Introduction
 The **Hostel Management System (HMS)** is a robust, web-based application designed to digitize and streamline the day-to-day operations of managing a student hostel. It provides a seamless interface for both students and administrators to handle accommodation, meals, maintenance, and communication.
 
