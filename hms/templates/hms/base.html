@@ -155,8 +155,7 @@
                         <p
                             class="text-sm font-bold text-white group-hover:text-teal-300 transition-colors leading-tight">
                             {{ user.first_name }}</p>
-                        <p class="text-[10px] text-indigo-300 uppercase tracking-widest">{% if user.is_staff %}Admin{%
-                            else %}Student{% endif %}</p>
+                        <p class="text-[10px] text-indigo-300 uppercase tracking-widest">{% if user.is_staff %}Admin{% else %}Student{% endif %}</p>
                     </div>
                 </a>
                 {% else %}

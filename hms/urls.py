@@ -40,6 +40,10 @@ urlpatterns = [
     
     # Activities
     path('manage/activities/', views.activities_list, name='activities'),
+    path('manage/activities/create/', views.create_activity, name='create_activity'),
+    path('manage/activities/edit/<int:pk>/', views.edit_activity, name='edit_activity'),
+    path('manage/activities/delete/<int:pk>/', views.delete_activity, name='delete_activity'),
+    path('manage/activities/toggle/<int:pk>/', views.toggle_activity_status, name='toggle_activity_status'),
 
     # Features
     path('manage/upload-document/', views.upload_document, name='upload_document'),
@@ -51,12 +55,14 @@ urlpatterns = [
     # Maintenance
     path('student/maintenance/', views.student_maintenance_list, name='student_maintenance_list'),
     path('student/maintenance/create/', views.submit_maintenance_request, name='submit_maintenance_request'),
+    path('student/maintenance/delete/<int:pk>/', views.delete_maintenance_request, name='delete_maintenance_request'),
     path('manage/maintenance/', views.manage_maintenance, name='manage_maintenance'),
     path('manage/maintenance/update/<int:pk>/', views.update_maintenance_status, name='update_maintenance_status'),
 
     # Leave Requests
     path('student/leave/', views.student_leave_list, name='student_leave_list'),
     path('student/leave/create/', views.submit_leave_request, name='submit_leave_request'),
+    path('student/leave/delete/<int:pk>/', views.delete_leave_request, name='delete_leave_request'),
     path('manage/leave/', views.manage_leave_requests, name='manage_leave_requests'),
     path('manage/leave/approve/<int:pk>/', views.approve_leave_request, name='approve_leave_request'),
 

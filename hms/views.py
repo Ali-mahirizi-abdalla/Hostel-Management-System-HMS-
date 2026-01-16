@@ -554,20 +554,24 @@ def edit_student(request, user_id):
     student = get_object_or_404(Student, user=user)
     
     if request.method == 'POST':
-        # Simple update for demo
-        user.first_name = request.POST.get('first_name')
-        user.last_name = request.POST.get('last_name')
-        user.email = request.POST.get('email')
+        # Update user fields
+        user.first_name = request.POST.get('first_name', '')
+        user.last_name = request.POST.get('last_name', '')
+        user.email = request.POST.get('email', '')
         user.save()
         
-        student.university_id = request.POST.get('university_id')
-        student.phone = request.POST.get('phone')
+        # Update student fields
+        student.university_id = request.POST.get('university_id', '')
+        student.phone = request.POST.get('phone', '')
+        student.room_number = request.POST.get('room_number', '')
+        student.is_away = request.POST.get('is_away') == 'on'
+        student.is_warden = request.POST.get('is_warden') == 'on'
         student.save()
         
-        messages.success(request, 'Student profile updated!')
+        messages.success(request, 'Student profile updated successfully!')
         return redirect('hms:manage_students')
     
-    return render(request, 'hms/admin/student_details.html', {'student': student, 'edit_mode': True})
+    return render(request, 'hms/admin/edit_student.html', {'student': student})
 
 @login_required
 def delete_student(request, user_id):
@@ -575,10 +579,15 @@ def delete_student(request, user_id):
     if not request.user.is_staff:
         messages.error(request, "Access denied.")
         return redirect('hms:student_dashboard')
+    
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('hms:manage_students')
         
     user = get_object_or_404(User, id=user_id)
+    student_name = user.get_full_name() or user.username
     user.delete()
-    messages.success(request, "Student deleted successfully.")
+    messages.success(request, f"Student '{student_name}' deleted successfully.")
     return redirect('hms:manage_students')
 
 @login_required
@@ -659,10 +668,15 @@ def delete_announcement(request, pk):
     if not request.user.is_staff:
         messages.error(request, "Access denied.")
         return redirect('hms:student_dashboard')
+    
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('hms:manage_announcements')
         
     announcement = get_object_or_404(Announcement, pk=pk)
+    announcement_title = announcement.title
     announcement.delete()
-    messages.success(request, "Announcement deleted successfully.")
+    messages.success(request, f"Announcement '{announcement_title}' deleted successfully.")
     return redirect('hms:manage_announcements')
 
 @login_required
@@ -730,16 +744,99 @@ def create_announcement(request):
 
 @login_required
 def activities_list(request):
-    """View all activities"""
+    """View and manage all activities"""
     if not request.user.is_staff:
         messages.error(request, "Access denied. Admin only.")
         return redirect('hms:student_dashboard')
     
-    activities = Activity.objects.filter(active=True).order_by('weekday', 'time')
+    activities = Activity.objects.all().order_by('weekday', 'time')
     context = {
         'activities': activities
     }
     return render(request, 'hms/admin/activities.html', context)
+
+@login_required
+def create_activity(request):
+    """Create a new activity"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    if request.method == 'POST':
+        display_name = request.POST.get('display_name', '')
+        weekday = request.POST.get('weekday', 0)
+        time_str = request.POST.get('time', '')
+        description = request.POST.get('description', '')
+        is_active = request.POST.get('active') == 'on'
+        
+        activity = Activity.objects.create(
+            display_name=display_name,
+            weekday=int(weekday),
+            time=time_str if time_str else None,
+            description=description,
+            active=is_active
+        )
+        messages.success(request, f"Activity '{display_name}' created successfully!")
+        return redirect('hms:activities')
+    
+    return render(request, 'hms/admin/activity_form.html', {'edit_mode': False})
+
+@login_required
+def edit_activity(request, pk):
+    """Edit an existing activity"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    activity = get_object_or_404(Activity, pk=pk)
+    
+    if request.method == 'POST':
+        activity.display_name = request.POST.get('display_name', '')
+        activity.weekday = int(request.POST.get('weekday', 0))
+        time_str = request.POST.get('time', '')
+        activity.time = time_str if time_str else None
+        activity.description = request.POST.get('description', '')
+        activity.active = request.POST.get('active') == 'on'
+        activity.save()
+        messages.success(request, f"Activity '{activity.display_name}' updated successfully!")
+        return redirect('hms:activities')
+    
+    return render(request, 'hms/admin/activity_form.html', {'activity': activity, 'edit_mode': True})
+
+@login_required
+def delete_activity(request, pk):
+    """Delete an activity"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('hms:activities')
+    
+    activity = get_object_or_404(Activity, pk=pk)
+    activity_name = activity.display_name
+    activity.delete()
+    messages.success(request, f"Activity '{activity_name}' deleted successfully!")
+    return redirect('hms:activities')
+
+@login_required
+def toggle_activity_status(request, pk):
+    """Toggle activity active status"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('hms:student_dashboard')
+    
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('hms:activities')
+    
+    activity = get_object_or_404(Activity, pk=pk)
+    activity.active = not activity.active
+    activity.save()
+    status = "activated" if activity.active else "deactivated"
+    messages.success(request, f"Activity '{activity.display_name}' {status}!")
+    return redirect('hms:activities')
 
 # ==================== Additional Features ====================
 
@@ -923,6 +1020,26 @@ def student_maintenance_list(request):
     return render(request, 'hms/student/maintenance_list.html', {'requests': requests})
 
 @login_required
+def delete_maintenance_request(request, pk):
+    """Student deletes their pending maintenance request"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+         return redirect('hms:student_dashboard')
+
+    maintenance_req = get_object_or_404(MaintenanceRequest, pk=pk, student=student)
+    
+    if maintenance_req.status != 'pending':
+        messages.error(request, "Cannot delete request that is already in progress or resolved.")
+        return redirect('hms:student_maintenance_list')
+        
+    if request.method == 'POST':
+        maintenance_req.delete()
+        messages.success(request, "Maintenance request cancelled successfully.")
+    
+    return redirect('hms:student_maintenance_list')
+
+@login_required
 def manage_maintenance(request):
     """Admin view to manage maintenance tickets"""
     if not request.user.is_staff:
@@ -1048,14 +1165,15 @@ def delete_room(request, pk):
         messages.error(request, "Access denied. Admin only.")
         return redirect('hms:student_dashboard')
     
-    room = get_object_or_404(Room, pk=pk)
-    
-    if request.method == 'POST':
-        room.delete()
-        messages.success(request, f'Room {room.room_number} deleted successfully!')
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
         return redirect('hms:room_list')
     
-    return render(request, 'hms/admin/room_confirm_delete.html', {'room': room})
+    room = get_object_or_404(Room, pk=pk)
+    room_number = room.room_number
+    room.delete()
+    messages.success(request, f'Room {room_number} deleted successfully!')
+    return redirect('hms:room_list')
 
 
 @login_required
@@ -1261,6 +1379,27 @@ def student_leave_list(request):
     }
     
     return render(request, 'hms/student/leave_list.html', context)
+
+@login_required
+def delete_leave_request(request, pk):
+    """Student cancels their pending leave request"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('hms:student_dashboard')
+    
+    leave_req = get_object_or_404(LeaveRequest, pk=pk, student=student)
+    
+    if leave_req.status != 'pending':
+        messages.error(request, "Cannot cancel leave request that has already been processed.")
+        return redirect('hms:student_leave_list')
+        
+    if request.method == 'POST':
+        leave_req.delete()
+        messages.success(request, "Leave request cancelled successfully.")
+        
+    return redirect('hms:student_leave_list')
 
 
 @login_required
@@ -1790,6 +1929,10 @@ def delete_event(request, pk):
     if not request.user.is_staff:
         messages.error(request, "Access denied. Admin only.")
         return redirect('hms:events_list')
+    
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('hms:manage_events')
     
     event = get_object_or_404(Event, pk=pk)
     event_title = event.title

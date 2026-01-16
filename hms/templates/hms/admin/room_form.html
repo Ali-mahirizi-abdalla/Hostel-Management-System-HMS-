@@ -1,0 +1,114 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}{{ action }} Room - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-slate-800/90 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl p-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-300">
+                {{ action }} Room
+            </h1>
+            <p class="text-gray-400 mt-2">{% if action == 'Edit' %}Update room details{% else %}Add a new room to the
+                hostel{% endif %}</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Room Number</label>
+                    <input type="text" name="room_number" value="{{ form.room_number.value|default:'' }}" required
+                        class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all hover:bg-black/30"
+                        placeholder="e.g., A-101">
+                    {% if form.room_number.errors %}
+                    <p class="text-red-400 text-sm">{{ form.room_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Room Type</label>
+                    <div class="relative">
+                        <select name="room_type" required
+                            class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all hover:bg-black/30 appearance-none">
+                            <option value="single" {% if form.room_type.value == 'single' %}selected{% endif %}
+                                class="bg-gray-800">Single</option>
+                            <option value="double" {% if form.room_type.value == 'double' %}selected{% endif %}
+                                class="bg-gray-800">Double</option>
+                            <option value="triple" {% if form.room_type.value == 'triple' %}selected{% endif %}
+                                class="bg-gray-800">Triple</option>
+                            <option value="quad" {% if form.room_type.value == 'quad' %}selected{% endif %}
+                                class="bg-gray-800">Quad</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Block</label>
+                    <input type="text" name="block" value="{{ form.block.value|default:'' }}"
+                        class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all hover:bg-black/30"
+                        placeholder="e.g., A, B, C">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Floor</label>
+                    <input type="number" name="floor" value="{{ form.floor.value|default:'' }}" min="0"
+                        class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all hover:bg-black/30"
+                        placeholder="e.g., 1, 2, 3">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Capacity</label>
+                    <input type="number" name="capacity" value="{{ form.capacity.value|default:'1' }}" min="1" max="10"
+                        required
+                        class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all hover:bg-black/30"
+                        placeholder="Number of beds">
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-300">Monthly Price (KES)</label>
+                <input type="number" name="price_per_month" value="{{ form.price_per_month.value|default:'0' }}" min="0"
+                    step="0.01"
+                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all hover:bg-black/30"
+                    placeholder="e.g., 5000">
+            </div>
+
+            <div class="flex items-center pb-1">
+                <label
+                    class="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition duration-200">
+                    <div class="relative">
+                        <input type="checkbox" name="is_available" class="sr-only peer" {% if form.is_available.value or
+                            not room %}checked{% endif %}>
+                        <div
+                            class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
+                        </div>
+                    </div>
+                    <span class="text-gray-300 font-medium select-none">Available for Assignment</span>
+                </label>
+            </div>
+
+            <div class="flex items-center gap-4 pt-6 border-t border-white/10">
+                <button type="submit"
+                    class="flex-1 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform hover:-translate-y-1 transition duration-200">
+                    {{ action }} Room
+                </button>
+                <a href="{% url 'hms:room_list' %}"
+                    class="px-6 py-3 rounded-xl border border-white/20 text-gray-300 hover:bg-white/5 transition text-center min-w-[120px]">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
