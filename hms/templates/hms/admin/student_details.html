@@ -98,14 +98,10 @@
                                 {% for meal in meal_history %}
                                 <tr>
                                     <td>{{ meal.date|date:"D, M j" }}</td>
-                                    <td>{% if meal.breakfast %}<i class="fas fa-check text-success"></i>{% else %}-{%
-                                        endif %}</td>
-                                    <td>{% if meal.early %}<i class="fas fa-check text-success"></i>{% else %}-{% endif
-                                        %}</td>
-                                    <td>{% if meal.supper %}<i class="fas fa-check text-success"></i>{% else %}-{% endif
-                                        %}</td>
-                                    <td>{% if meal.away %}<i class="fas fa-check text-warning"></i>{% else %}-{% endif
-                                        %}</td>
+                                    <td>{% if meal.breakfast %}<i class="fas fa-check text-success"></i>{% else %}-{% endif %}</td>
+                                    <td>{% if meal.early %}<i class="fas fa-check text-success"></i>{% else %}-{% endif %}</td>
+                                    <td>{% if meal.supper %}<i class="fas fa-check text-success"></i>{% else %}-{% endif %}</td>
+                                    <td>{% if meal.away %}<i class="fas fa-check text-warning"></i>{% else %}-{% endif %}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
