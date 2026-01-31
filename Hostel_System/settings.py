@@ -59,6 +59,9 @@ INSTALLED_APPS = [
     
     # Whitenoise
     'whitenoise.runserver_nostatic',
+    
+    # Sitemaps
+    'django.contrib.sitemaps',
 ]
 
 SITE_ID = 1
