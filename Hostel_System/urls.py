@@ -8,7 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('hms.urls', namespace='hms')),
-    path('google17891a7c3e3a6e03.html', lambda r: HttpResponse("google-site-verification: google17891a7c3e3a6e03.html", content_type="text/plain")),
+    path('google17891a7c3e3a6e03.html', lambda r: HttpResponse("google-site-verification: google17891a7c3e3a6e03.html", content_type="text/html")),
 ]
 
 if settings.DEBUG:
