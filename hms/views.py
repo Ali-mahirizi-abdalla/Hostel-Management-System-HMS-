@@ -1401,6 +1401,27 @@ def delete_leave_request(request, pk):
         
     return redirect('hms:student_leave_list')
 
+@login_required
+def resume_studies(request, pk):
+    """Student acknowledges rejected leave and 'resumes' studies (clears request)"""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('hms:student_dashboard')
+    
+    leave_req = get_object_or_404(LeaveRequest, pk=pk, student=student)
+    
+    if leave_req.status != 'rejected':
+        messages.error(request, "Can only resume studies from a rejected leave request.")
+        return redirect('hms:student_leave_list')
+        
+    if request.method == 'POST':
+        leave_req.delete()
+        messages.success(request, "Welcome back! You have resumed your studies.")
+        
+    return redirect('hms:student_leave_list')
+
 
 @login_required
 def manage_leave_requests(request):

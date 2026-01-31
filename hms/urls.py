@@ -63,6 +63,7 @@ urlpatterns = [
     path('student/leave/', views.student_leave_list, name='student_leave_list'),
     path('student/leave/create/', views.submit_leave_request, name='submit_leave_request'),
     path('student/leave/delete/<int:pk>/', views.delete_leave_request, name='delete_leave_request'),
+    path('student/leave/resume/<int:pk>/', views.resume_studies, name='resume_studies'),
     path('manage/leave/', views.manage_leave_requests, name='manage_leave_requests'),
     path('manage/leave/approve/<int:pk>/', views.approve_leave_request, name='approve_leave_request'),
 
