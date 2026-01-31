@@ -1,0 +1,68 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}Payment History - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-cyan-300">
+            Payment History
+        </h1>
+        <a href="{% url 'hms:pay_accommodation' %}"
+            class="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white font-medium transition">
+            Make New Payment
+        </a>
+    </div>
+
+    <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-gray-300">
+                <thead class="bg-black/20 text-xs uppercase text-gray-400 font-medium">
+                    <tr>
+                        <th class="px-6 py-4">Date</th>
+                        <th class="px-6 py-4">Transaction ID</th>
+                        <th class="px-6 py-4">Amount</th>
+                        <th class="px-6 py-4">Phone</th>
+                        <th class="px-6 py-4">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for payment in payments %}
+                    <tr class="hover:bg-white/5 transition">
+                        <td class="px-6 py-4">{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                        <td class="px-6 py-4 font-mono text-sm">{{ payment.transaction_id|default:"-" }}</td>
+                        <td class="px-6 py-4 font-bold text-white">KES {{ payment.amount }}</td>
+                        <td class="px-6 py-4">{{ payment.phone_number }}</td>
+                        <td class="px-6 py-4">
+                            {% if payment.status == 'Completed' %}
+                            <span
+                                class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold border border-green-500/30">Completed</span>
+                            {% elif payment.status == 'Pending' %}
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-xs font-bold border border-yellow-500/30">Pending</span>
+                                {% if payment.checkout_request_id %}
+                                <a href="{% url 'hms:check_payment_status' payment.id %}"
+                                    class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition"
+                                    title="Check Status from Safaricom">
+                                    Check
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <span
+                                class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold border border-red-500/30">Failed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">No payment history found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

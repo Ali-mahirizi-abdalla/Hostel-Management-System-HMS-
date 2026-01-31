@@ -1,0 +1,40 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}Pay Accommodation - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-8">
+    <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl p-8">
+        <h1 class="text-2xl font-bold text-white mb-6">Accommodation Payment</h1>
+        
+        <div class="mb-6 p-4 bg-teal-500/10 border border-teal-500/30 rounded-xl">
+            <p class="text-teal-200 text-sm">
+                Enter your M-Pesa phone number. You will receive a prompt on your phone to complete the payment.
+            </p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-300">Phone Number (M-Pesa)</label>
+                <input type="text" name="phone" required
+                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="e.g., 0712345678" value="{{ user.student_profile.phone }}">
+            </div>
+            
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-300">Amount (KES)</label>
+                <input type="number" name="amount" required min="1"
+                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="Amount" value="10"> <!-- Default small amount for testing -->
+            </div>
+            
+            <button type="submit"
+                class="w-full py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition transform hover:-translate-y-1">
+                Pay with M-Pesa
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,412 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1
+                    class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+                    📊 Analytics Dashboard
+                </h1>
+                <p class="text-slate-600 dark:text-slate-400 mt-1">Comprehensive insights into hostel operations</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-slate-500 dark:text-slate-400">Last Updated</p>
+                <p class="font-bold text-slate-700 dark:text-slate-300">{{ today|date:"F d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Total Students -->
+        <div class="bg-gradient-to-br from-blue-500 to-cyan-600 p-6 rounded-2xl text-white shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium">Total Students</p>
+                    <p class="text-3xl font-bold">{{ total_students }}</p>
+                </div>
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m-3 5.197v-1">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Breakfast -->
+        <div class="bg-gradient-to-br from-amber-500 to-orange-600 p-6 rounded-2xl text-white shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-amber-100 text-sm font-medium">Today's Breakfast</p>
+                    <p class="text-3xl font-bold">{{ today_breakfast }}</p>
+                </div>
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                    ☀️
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Supper -->
+        <div class="bg-gradient-to-br from-purple-500 to-pink-600 p-6 rounded-2xl text-white shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100 text-sm font-medium">Today's Supper</p>
+                    <p class="text-3xl font-bold">{{ today_supper }}</p>
+                </div>
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                    🌙
+                </div>
+            </div>
+        </div>
+
+        <!-- Currently Away -->
+        <div class="bg-gradient-to-br from-slate-600 to-slate-800 p-6 rounded-2xl text-white shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-300 text-sm font-medium">Currently Away</p>
+                    <p class="text-3xl font-bold">{{ today_away }}</p>
+                </div>
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                    🏠
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Items Alert -->
+    {% if pending_maintenance > 0 or pending_leaves > 0 %}
+    <div
+        class="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 p-6 rounded-2xl border border-yellow-200 dark:border-yellow-800">
+        <h3 class="font-semibold text-yellow-800 dark:text-yellow-300 flex items-center gap-2 mb-4">
+            <span class="relative flex h-3 w-3">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+            </span>
+            Action Required
+        </h3>
+        <div class="flex flex-wrap gap-4">
+            {% if pending_maintenance > 0 %}
+            <a href="{% url 'hms:manage_maintenance' %}"
+                class="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow hover:shadow-md transition">
+                <span class="text-yellow-600 dark:text-yellow-400 font-bold">{{ pending_maintenance }}</span>
+                <span class="text-slate-600 dark:text-slate-400">Pending Maintenance</span>
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            {% endif %}
+            {% if pending_leaves > 0 %}
+            <a href="{% url 'hms:manage_leave_requests' %}?status=pending"
+                class="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow hover:shadow-md transition">
+                <span class="text-yellow-600 dark:text-yellow-400 font-bold">{{ pending_leaves }}</span>
+                <span class="text-slate-600 dark:text-slate-400">Pending Leave Requests</span>
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Weekly Meal Trends -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                </svg>
+                Weekly Meal Trends
+            </h3>
+            <div class="h-64">
+                <canvas id="weeklyMealChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Maintenance Status -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Maintenance Requests by Status
+            </h3>
+            <div class="h-64">
+                <canvas id="maintenanceStatusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Leave Requests by Status -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+                Leave Requests Overview
+            </h3>
+            <div class="h-64">
+                <canvas id="leaveStatusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Room Occupancy -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                    </path>
+                </svg>
+                Room Occupancy
+            </h3>
+            <div class="flex items-center justify-center h-64">
+                <div class="text-center">
+                    <div class="relative w-40 h-40 mx-auto">
+                        <canvas id="roomOccupancyChart"></canvas>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div>
+                                <p class="text-3xl font-bold text-slate-900 dark:text-white">{{
+                                    room_stats.occupancy_rate }}%</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Occupied</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center gap-6 mt-4">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ room_stats.occupied }}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Occupied</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ room_stats.available }}
+                            </p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Maintenance -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    🔧 Recent Maintenance
+                </span>
+                <a href="{% url 'hms:manage_maintenance' %}"
+                    class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View All</a>
+            </h3>
+            <div class="space-y-3">
+                {% for m in recent_maintenance %}
+                <div class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                    <span
+                        class="{% if m.status == 'pending' %}text-yellow-500{% elif m.status == 'in_progress' %}text-blue-500{% else %}text-green-500{% endif %}">
+                        {% if m.status == 'pending' %}🟡{% elif m.status == 'in_progress' %}🔵{% else %}🟢{% endif %}
+                    </span>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-slate-900 dark:text-white text-sm truncate">{{ m.title }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ m.student.user.first_name }} • {{
+                            m.created_at|date:"M d" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No recent maintenance</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Leaves -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    🏠 Recent Leave Requests
+                </span>
+                <a href="{% url 'hms:manage_leave_requests' %}"
+                    class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View All</a>
+            </h3>
+            <div class="space-y-3">
+                {% for l in recent_leaves %}
+                <div class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                    <span>
+                        {% if l.status == 'pending' %}🟡{% elif l.status == 'approved' %}✅{% else %}❌{% endif %}
+                    </span>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-slate-900 dark:text-white text-sm truncate">{{
+                            l.student.user.get_full_name }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ l.get_leave_type_display }} • {{
+                            l.start_date|date:"M d" }}-{{ l.end_date|date:"M d" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No recent leave requests</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Announcements -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    📢 Recent Announcements
+                </span>
+                <a href="{% url 'hms:manage_announcements' %}"
+                    class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View All</a>
+            </h3>
+            <div class="space-y-3">
+                {% for a in recent_announcements %}
+                <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                    <p class="font-medium text-slate-900 dark:text-white text-sm truncate">{{ a.title }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ a.created_at|date:"M d, Y" }} • {{
+                        a.get_priority_display }}</p>
+                </div>
+                {% empty %}
+                <p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No recent announcements</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const chartData = {{ chart_data_json| safe
+    }};
+    const isDark = document.documentElement.classList.contains('dark');
+    const gridColor = isDark ? '#334155' : '#e2e8f0';
+    const textColor = isDark ? '#94a3b8' : '#64748b';
+
+    // Weekly Meal Trends Chart
+    new Chart(document.getElementById('weeklyMealChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.weekly.labels,
+            datasets: [
+                {
+                    label: 'Breakfast',
+                    data: chartData.weekly.breakfast,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Supper',
+                    data: chartData.weekly.supper,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Away',
+                    data: chartData.weekly.away,
+                    borderColor: '#64748b',
+                    backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: textColor } } },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                y: { grid: { color: gridColor }, ticks: { color: textColor } }
+            }
+        }
+    });
+
+    // Maintenance Status Chart
+    new Chart(document.getElementById('maintenanceStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'In Progress', 'Resolved'],
+            datasets: [{
+                data: [
+                    chartData.maintenance_status.pending,
+                    chartData.maintenance_status.in_progress,
+                    chartData.maintenance_status.resolved
+                ],
+                backgroundColor: ['#eab308', '#3b82f6', '#22c55e'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
+        }
+    });
+
+    // Leave Status Chart
+    new Chart(document.getElementById('leaveStatusChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Pending', 'Approved', 'Rejected'],
+            datasets: [{
+                label: 'Leave Requests',
+                data: [
+                    chartData.leave_status.pending,
+                    chartData.leave_status.approved,
+                    chartData.leave_status.rejected
+                ],
+                backgroundColor: ['#eab308', '#22c55e', '#ef4444'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: textColor } },
+                y: { grid: { color: gridColor }, ticks: { color: textColor } }
+            }
+        }
+    });
+
+    // Room Occupancy Chart
+    new Chart(document.getElementById('roomOccupancyChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Occupied', 'Available'],
+            datasets: [{
+                data: [chartData.room_occupancy.occupied, chartData.room_occupancy.available],
+                backgroundColor: ['#8b5cf6', '#22c55e'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: { legend: { display: false } }
+        }
+    });
+});
+</script>
+{% endblock %}

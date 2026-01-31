@@ -1,0 +1,172 @@
+{% extends 'hms/base.html' %}
+{% load static %}
+
+{% block title %}{{ student.user.get_full_name|default:student.user.username }} - Student Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Student Details</h2>
+        <div>
+            <a href="{% url 'hms:edit_student' student.user.id %}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i> Edit Student
+            </a>
+            <a href="{% url 'hms:manage_students' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Students
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Student Information Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <img src="{% if student.user.profile_picture %}{{ student.user.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
+                                class="rounded-circle" width="120" height="120" alt="{{ student.user.get_full_name }}">
+                            {% if student.is_away %}
+                            <span class="position-absolute bottom-0 end-0 badge bg-warning">
+                                <i class="fas fa-sign-out-alt"></i> Away
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h4 class="mt-3 mb-1">{{ student.user.get_full_name|default:student.user.username }}</h4>
+                        <p class="text-muted mb-0">{{ student.user.email }}</p>
+                        <p class="text-muted">ID: {{ student.university_id }}</p>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Username</span>
+                            <span class="fw-bold">{{ student.user.username }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Phone</span>
+                            <span class="fw-bold">{{ student.phone|default:"-" }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>University ID</span>
+                            <span class="fw-bold">{{ student.university_id }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Room Number</span>
+                            <span class="fw-bold">{{ student.room_number|default:"-" }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Timetable</span>
+                            {% if student.timetable %}
+                            <a href="{{ student.timetable.url }}" target="_blank"
+                                class="btn btn-sm btn-info text-white">View</a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal History Card -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Meal History</h5>
+                    <a href="{% url 'hms:meal_history' %}?student_id={{ student.user.id }}"
+                        class="btn btn-sm btn-outline-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if meal_history %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Breakfast</th>
+                                    <th>Early</th>
+                                    <th>Supper</th>
+                                    <th>Away</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for meal in meal_history %}
+                                <tr>
+                                    <td>{{ meal.date|date:"D, M j" }}</td>
+                                    <td>{% if meal.breakfast %}<i class="fas fa-check text-success"></i>{% else %}-{% endif %}</td>
+                                    <td>{% if meal.early %}<i class="fas fa-check text-success"></i>{% else %}-{% endif %}</td>
+                                    <td>{% if meal.supper %}<i class="fas fa-check text-success"></i>{% else %}-{% endif %}</td>
+                                    <td>{% if meal.away %}<i class="fas fa-check text-warning"></i>{% else %}-{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        No meal history found for the last 7 days.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Upcoming Away Records -->
+            {% if upcoming_away %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Upcoming Away Periods</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for away in upcoming_away %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    {{ away.start_date|date:"M j" }} - {{ away.end_date|date:"M j, Y" }}
+                                </h6>
+                                <small class="text-muted">
+                                    {{ away.start_date|timeuntil }} from now
+                                </small>
+                            </div>
+                            {% if away.reason %}
+                            <p class="mb-1 text-muted">{{ away.reason }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Activities -->
+            {% if recent_activities %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activities</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ activity.name }}</h6>
+                                <small class="text-muted">{{ activity.date|date:"M j" }} • {{
+                                    activity.start_time|time:"g:i A" }}</small>
+                            </div>
+                            <p class="mb-1">{{ activity.description|truncatewords:15 }}</p>
+                            <small class="text-muted">{{ activity.location }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

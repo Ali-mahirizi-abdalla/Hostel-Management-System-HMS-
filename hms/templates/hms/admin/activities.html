@@ -1,0 +1,134 @@
+{% extends 'hms/base.html' %}
+
+{% block title %}Manage Activities - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-300">
+                Manage Activities
+            </h1>
+            <p class="text-gray-400 mt-2">Schedule and organize weekly recurring activities</p>
+        </div>
+        <a href="{% url 'hms:create_activity' %}"
+            class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold rounded-xl shadow-lg transform hover:-translate-y-1 transition duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Activity
+        </a>
+    </div>
+
+    <!-- Activities Grid -->
+    {% if activities %}
+    <div class="bg-slate-800/90 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-gray-300">
+                <thead class="bg-black/20 text-xs uppercase text-gray-400 font-medium tracking-wider">
+                    <tr>
+                        <th class="px-6 py-4">Day</th>
+                        <th class="px-6 py-4">Activity</th>
+                        <th class="px-6 py-4">Time</th>
+                        <th class="px-6 py-4">Description</th>
+                        <th class="px-6 py-4 text-center">Status</th>
+                        <th class="px-6 py-4 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for activity in activities %}
+                    <tr class="hover:bg-white/5 transition-colors duration-200">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                                    <span class="text-emerald-400 font-bold text-sm">
+                                        {{ activity.get_weekday_display|slice:":3" }}
+                                    </span>
+                                </div>
+                                <span class="font-medium text-white">{{ activity.get_weekday_display }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold text-white">{{ activity.display_name }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400">
+                            {% if activity.time %}
+                            {{ activity.time|time:"g:i A" }}
+                            {% else %}
+                            <span class="text-gray-500">Not set</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-400 max-w-xs truncate">
+                            {{ activity.description|default:"No description"|truncatewords:10 }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <form method="post" action="{% url 'hms:toggle_activity_status' activity.pk %}"
+                                class="inline">
+                                {% csrf_token %}
+                                <button type="submit" title="Click to toggle status" class="px-3 py-1 rounded-full text-xs font-bold transition-colors
+                                    {% if activity.active %}
+                                        bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30
+                                    {% else %}
+                                        bg-gray-500/20 text-gray-400 border border-gray-500/30 hover:bg-gray-500/30
+                                    {% endif %}">
+                                    {% if activity.active %}✓ Active{% else %}○ Inactive{% endif %}
+                                </button>
+                            </form>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'hms:edit_activity' activity.pk %}"
+                                    class="p-2 text-emerald-400 hover:text-white hover:bg-emerald-500/20 rounded-lg transition"
+                                    title="Edit">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                                <form method="post" action="{% url 'hms:delete_activity' activity.pk %}" class="inline"
+                                    onsubmit="return confirm('Are you sure you want to delete this activity?')">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                        class="p-2 text-red-400 hover:text-white hover:bg-red-500/20 rounded-lg transition"
+                                        title="Delete">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-slate-800/90 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl p-12 text-center">
+        <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <h3 class="text-xl font-medium text-gray-300">No Activities Scheduled</h3>
+        <p class="text-gray-500 mt-2">Create a new activity to get started with weekly scheduling.</p>
+        <a href="{% url 'hms:create_activity' %}"
+            class="inline-flex items-center mt-6 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl shadow-lg hover:shadow-emerald-500/20 transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create First Activity
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="flex gap-3">
+        <a href="{% url 'hms:admin_dashboard' %}"
+            class="px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 transition">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

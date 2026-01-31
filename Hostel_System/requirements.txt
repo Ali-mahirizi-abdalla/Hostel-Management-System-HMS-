@@ -1,0 +1,7 @@
+Django>=4.0
+gunicorn
+whitenoise[brotli]
+psycopg2-binary
+dj-database-url
+python-dotenv
+django-allauth
